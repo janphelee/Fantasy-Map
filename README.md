@@ -7,7 +7,6 @@
 * win10 x64
 * godot-3.2.1-stable mono 版本
 * vs2017 C#环境
-* SkiaSharp version="1.68.1.1"
 
 # 编译运行
 
