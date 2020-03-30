@@ -26,11 +26,10 @@ __meta__ = {
 }
 
 [node name="Panel" type="Panel" parent="ViewportContainer"]
-self_modulate = Color( 1, 1, 1, 0 )
+self_modulate = Color( 1, 1, 1, 0.784314 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 3 )
-texture = ExtResource( 4 )
 
 [node name="Label" type="Label" parent="ViewportContainer/Panel"]
 margin_left = 118.591
