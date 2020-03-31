@@ -15,9 +15,11 @@ public class Panel : Godot.Control
     private bool needUpdate = true;
     private Texture texture;
 
-    public override void _Ready()
+    public override unsafe void _Ready()
     {
         Engine.TargetFps = 50;//限制帧率
+
+        OS.SetImeActive(true);//可以用输入法
 
         Debug.Log($"ImGui version:{ImGui.GetVersion()}");
         ImGui.CreateContext();
@@ -27,9 +29,14 @@ public class Panel : Godot.Control
         var io = ImGui.GetIO();
         io.DisplaySize.X = 1024;
         io.DisplaySize.Y = 600;
-        //io.Fonts.AddFontFromFileTTF("E:\\room.godot\\Fantasy Map\\fonts\\文泉驿等宽微米黑.ttf", 40f);
-        io.Fonts.AddFontDefault();
+        //io.Fonts.AddFontDefault();
+        io.Fonts.AddFontFromFileTTF("E:\\room.godot\\Fantasy Map\\fonts\\文泉驿等宽微米黑.ttf", 16, null, io.Fonts.GetGlyphRangesChineseSimplifiedCommon());
+        //io.Fonts.AddFontFromFileTTF("E:\\room.godot\\Fantasy Map\\fonts\\文泉驿等宽微米黑.ttf", 14, null, io.Fonts.GetGlyphRangesChineseFull());
         io.Fonts.Build();
+
+
+        initKeyMaps();//映射ImGui键名
+
 
         IntPtr pixels;
         int width, height;
@@ -42,10 +49,19 @@ public class Panel : Godot.Control
         var img = new Image();
         img.CreateFromData(width, height, false, Image.Format.Rgba8, data);
         var tex = new ImageTexture();
-        tex.CreateFromImage(img);
+        tex.CreateFromImage(img, (uint)Texture.FlagsEnum.Filter);//设置纹理no mimaps，不然字体会模糊
+
 
         texture = tex;
     }
+
+    private void initKeyMaps()
+    {
+        var io = ImGui.GetIO();
+        for (var i = 0; i < io.KeyMap.Count; ++i)
+            io.KeyMap[i] = i;
+    }
+
     public override void _Input(InputEvent @event)
     {
         var io = ImGui.GetIO();
@@ -53,19 +69,57 @@ public class Panel : Godot.Control
         if (@event is InputEventMouseButton)
         {
             var evt = @event as InputEventMouseButton;
-            needUpdate = true;
+            if (evt.Pressed)
+            {
+                switch ((ButtonList)evt.ButtonIndex)
+                {
+                    case ButtonList.WheelUp:
+                        io.MouseWheel += 1;
+                        break;
+                    case ButtonList.WheelDown:
+                        io.MouseWheel -= 1;
+                        break;
+                    case ButtonList.WheelLeft:
+                        io.MouseWheelH -= 1;
+                        break;
+                    case ButtonList.WheelRight:
+                        io.MouseWheelH += 1;
+                        break;
+                }
+            }
+
+            io.MouseDown[0] = Input.IsMouseButtonPressed((int)ButtonList.Left);
+            io.MouseDown[1] = Input.IsMouseButtonPressed((int)ButtonList.Right);
+            io.MouseDown[2] = Input.IsMouseButtonPressed((int)ButtonList.Middle);
+
+            //Debug.Log($"{evt.AsText()}");
         }
 
-        if (@event is InputEventMouseMotion)
+        else if (@event is InputEventMouseMotion)
         {
             var evt = @event as InputEventMouseMotion;
             io.MousePos = new System.Numerics.Vector2(evt.GlobalPosition.x, evt.GlobalPosition.y);
-            needUpdate = true;
-        }
 
-        io.MouseDown[0] = Input.IsMouseButtonPressed((int)ButtonList.Left);
-        io.MouseDown[1] = Input.IsMouseButtonPressed((int)ButtonList.Right);
-        io.MouseDown[2] = Input.IsMouseButtonPressed((int)ButtonList.Middle);
+            //Debug.Log($"{evt.AsText()}");
+        }
+        else if (@event is InputEventKey)
+        {
+            var evt = @event as InputEventKey;
+            if (evt.Pressed)
+                io.AddInputCharacter(evt.Unicode);
+
+            io.KeysDown[(int)ImGuiKey.Backspace] = Input.IsKeyPressed((int)KeyList.Backspace);//删除字符
+            io.KeysDown[(int)ImGuiKey.Space] = Input.IsKeyPressed((int)KeyList.Space);
+            io.KeysDown[(int)ImGuiKey.Enter] = Input.IsKeyPressed((int)KeyList.Enter);
+            io.KeysDown[(int)ImGuiKey.Escape] = Input.IsKeyPressed((int)KeyList.Escape);
+        }
+    }
+
+    public override void _Notification(int what)
+    {
+        //Debug.Log($"_Notification what:{what}");
+        if (NotificationOsImeUpdate == what)
+            Debug.Log($"GetImeText:{OS.GetImeText()}");
     }
 
     public override void _Process(float delta)
@@ -74,7 +128,7 @@ public class Panel : Godot.Control
         io.DeltaTime = delta > 0 ? delta : 1f / Engine.TargetFps;
         //Debug.Log($"_Process {delta} {io.DeltaTime}");// 单位为秒
 
-
+        needUpdate = true;
         ImGui.NewFrame();
         ImGui.ShowDemoWindow();
         ImGui.EndFrame();
@@ -155,7 +209,7 @@ public class Panel : Godot.Control
             }
         }
 
-        DrawTexture(texture, Vector2.Zero);
+        //DrawTexture(texture, Vector2.Zero);
     }
 
     private void _on_Button_button_down()

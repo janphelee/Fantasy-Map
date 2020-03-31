@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://MapJobsScreen.cs" type="Script" id=1]
-[ext_resource path="res://fonts/文泉驿等宽微米黑.tres" type="DynamicFont" id=2]
+[ext_resource path="res://fonts/默认字体.tres" type="DynamicFont" id=2]
 [ext_resource path="res://Panel.cs" type="Script" id=3]
 [ext_resource path="res://icon.png" type="Texture" id=4]
 [ext_resource path="res://MoveAndZoom.cs" type="Script" id=5]
@@ -37,7 +37,7 @@ margin_right = 870.591
 margin_bottom = 277.302
 custom_fonts/font = ExtResource( 2 )
 custom_colors/font_color = Color( 0.921569, 1, 0, 1 )
-text = "我们是祖国的花朵，测试一下中文显示。"
+text = "我们是祖国的花朵，测试一下中文显示。文泉驿等宽微米黑.ttf"
 __meta__ = {
 "_edit_use_anchors_": false
 }
