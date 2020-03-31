@@ -9,13 +9,15 @@ using Color = Godot.Color;
 using Vector2 = Godot.Vector2;
 using Vector3 = Godot.Vector3;
 
-public class Panel : Godot.Panel
+public class Panel : Godot.Control
 {
     private bool needUpdate = true;
     private Texture texture;
 
     public override void _Ready()
     {
+        Engine.TargetFps = 50;//限制帧率
+
         Debug.Log($"ImGui version:{ImGui.GetVersion()}");
         ImGui.CreateContext();
         ImGui.StyleColorsDark();
@@ -24,7 +26,7 @@ public class Panel : Godot.Panel
         var io = ImGui.GetIO();
         io.DisplaySize.X = 1024;
         io.DisplaySize.Y = 600;
-        //io.Fonts.AddFontFromFileTTF("E:\\room.godot\\Fantasy Map\\fonts\\文泉驿等宽微米黑.ttf", 13f);
+        //io.Fonts.AddFontFromFileTTF("E:\\room.godot\\Fantasy Map\\fonts\\文泉驿等宽微米黑.ttf", 40f);
         io.Fonts.AddFontDefault();
         io.Fonts.Build();
 
@@ -50,8 +52,6 @@ public class Panel : Godot.Panel
         if (@event is InputEventMouseButton)
         {
             var evt = @event as InputEventMouseButton;
-            if (evt.ButtonIndex < io.MouseDown.Count)
-                io.MouseDown[evt.ButtonIndex] = evt.Pressed;
             needUpdate = true;
         }
 
@@ -61,12 +61,18 @@ public class Panel : Godot.Panel
             io.MousePos = new System.Numerics.Vector2(evt.GlobalPosition.x, evt.GlobalPosition.y);
             needUpdate = true;
         }
+
+        io.MouseDown[0] = Input.IsMouseButtonPressed((int)ButtonList.Left);
+        io.MouseDown[1] = Input.IsMouseButtonPressed((int)ButtonList.Right);
+        io.MouseDown[2] = Input.IsMouseButtonPressed((int)ButtonList.Middle);
     }
 
     public override void _Process(float delta)
     {
         var io = ImGui.GetIO();
-        //io.DeltaTime = delta;
+        io.DeltaTime = delta > 0 ? delta : 1f / Engine.TargetFps;
+        //Debug.Log($"_Process {delta} {io.DeltaTime}");// 单位为秒
+
 
         ImGui.NewFrame();
         ImGui.ShowDemoWindow();

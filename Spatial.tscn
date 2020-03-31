@@ -25,13 +25,12 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Panel" type="Panel" parent="ViewportContainer"]
-self_modulate = Color( 1, 1, 1, 0.784314 )
+[node name="Control" type="Control" parent="ViewportContainer"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 3 )
 
-[node name="Label" type="Label" parent="ViewportContainer/Panel"]
+[node name="Label" type="Label" parent="ViewportContainer/Control"]
 margin_left = 118.591
 margin_top = 258.302
 margin_right = 870.591
@@ -43,7 +42,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Button" type="Button" parent="ViewportContainer/Panel"]
+[node name="Button" type="Button" parent="ViewportContainer/Control"]
 margin_left = 102.0
 margin_top = 86.0
 margin_right = 331.0
@@ -56,4 +55,4 @@ __meta__ = {
 }
 [connection signal="MoveTo" from="ViewportContainer" to="ViewportContainer/MapJobs" method="_on_ViewportContainer_MoveTo"]
 [connection signal="ZoomTo" from="ViewportContainer" to="ViewportContainer/MapJobs" method="_on_ViewportContainer_ZoomTo"]
-[connection signal="button_down" from="ViewportContainer/Panel/Button" to="ViewportContainer/Panel" method="_on_Button_button_down"]
+[connection signal="button_down" from="ViewportContainer/Control/Button" to="ViewportContainer/Control" method="_on_Button_button_down"]
