@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Godot;
 using ImGuiNET;
 using Janphe;
+using SkiaSharp;
 using Color = Godot.Color;
 using Vector2 = Godot.Vector2;
 using Vector3 = Godot.Vector3;
@@ -20,7 +21,7 @@ public class Panel : Godot.Control
 
         Debug.Log($"ImGui version:{ImGui.GetVersion()}");
         ImGui.CreateContext();
-        ImGui.StyleColorsDark();
+        ImGui.StyleColorsClassic();
 
         //! 必须设置 显示区域大小，字体贴图集，不然程序会挂掉
         var io = ImGui.GetIO();
@@ -86,7 +87,7 @@ public class Panel : Godot.Control
         }
     }
 
-    unsafe public override void _Draw()
+    public override unsafe void _Draw()
     {
         var draw_data = ImGui.GetDrawData();
         if ((IntPtr)draw_data.NativePtr == IntPtr.Zero)
@@ -114,10 +115,10 @@ public class Panel : Godot.Control
 
 
                 //Debug.Log($"cmd_list.CmdBuffer cmd_i:{cmd_i} ElemCount:{pcmd.ElemCount} VtxOffset:{pcmd.VtxOffset} IdxOffset:{pcmd.IdxOffset} TextureId:{pcmd.TextureId}");
-                //if (pcmd.UserCallback != IntPtr.Zero)
-                //{
-                //}
-                //else
+                if (pcmd.UserCallback != IntPtr.Zero)
+                {
+                }
+                else
                 {
                     Vector4 clip_rect;
                     clip_rect.X = (pcmd.ClipRect.X - clip_off.X) * clip_scale.X;
@@ -133,30 +134,28 @@ public class Panel : Godot.Control
                         //pcmd.VtxOffset;
                         //pcmd.IdxOffset;
 
-                        for (var i = 0; i < pcmd.ElemCount; i++)
+                        var pp = new Vector2[3];
+                        var cc = new Color[3];
+                        var uv = new Vector2[3];
+                        for (var j = 0; j < pcmd.ElemCount; j += 3)
                         {
+                            for (var k = 0; k < 3; ++k)
+                            {
+                                var vtx = cmd_list.VtxBuffer[cmd_list.IdxBuffer[(int)pcmd.IdxOffset + j + k]];
+                                pp[k] = new Vector2(vtx.pos.X, vtx.pos.Y);
+                                uv[k] = new Vector2(vtx.uv.X, vtx.uv.Y);
+
+                                var c = ImGui.ColorConvertU32ToFloat4(vtx.col);//bgra format
+                                cc[k] = new Color(c.X, c.Y, c.Z, c.W);
+                            }
+                            DrawPrimitive(pp, cc, uv, texture);
                         }
                     }
                 }
             }
-
-            DrawTexture(texture, Vector2.Zero);
-
-            var pp = new Vector2[3];
-            var cc = new Color[3];
-            var uv = new Vector2[3];
-            for (var i = 0; i < idx_size; i += 3)
-            {
-                for (var j = 0; j < 3; ++j)
-                {
-                    var vtx = cmd_list.VtxBuffer[cmd_list.IdxBuffer[i + j]];
-                    pp[j] = new Vector2(vtx.pos.X, vtx.pos.Y);
-                    cc[j] = new Color(vtx.col);
-                    uv[j] = new Vector2(vtx.uv.X, vtx.uv.Y);
-                }
-                DrawPrimitive(pp, cc, uv, texture);
-            }
         }
+
+        DrawTexture(texture, Vector2.Zero);
     }
 
     private void _on_Button_button_down()
