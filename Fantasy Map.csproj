@@ -83,6 +83,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Janphe\Fantasy\Map\MapJobs.Gui.cs" />
+    <Compile Include="Janphe\Gui\Gui.godot.cs" />
+    <Compile Include="Janphe\Gui\Gui.cs" />
     <Compile Include="MapJobsScreen.cs" />
     <Compile Include="Janphe\Core\Color.cs" />
     <Compile Include="Janphe\Core\Colors.cs" />
@@ -140,7 +143,6 @@
     <Compile Include="Janphe\Fantasy\Map\Voronoi.cs" />
     <Compile Include="Janphe\Fantasy\Map\Biomes.cs" />
     <Compile Include="MoveAndZoom.cs" />
-    <Compile Include="Panel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

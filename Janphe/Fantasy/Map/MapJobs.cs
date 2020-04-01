@@ -17,6 +17,7 @@ namespace Janphe.Fantasy.Map
         public MapJobs()
         {
             initOptions();
+            initLayers();
         }
 
         public void Dispose()

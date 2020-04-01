@@ -1,10 +1,8 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://MapJobsScreen.cs" type="Script" id=1]
-[ext_resource path="res://fonts/默认字体.tres" type="DynamicFont" id=2]
-[ext_resource path="res://Panel.cs" type="Script" id=3]
-[ext_resource path="res://icon.png" type="Texture" id=4]
 [ext_resource path="res://MoveAndZoom.cs" type="Script" id=5]
+[ext_resource path="res://Janphe/Gui/Gui.cs" type="Script" id=6]
 
 [node name="Spatial" type="Spatial"]
 
@@ -25,34 +23,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Control" type="Control" parent="ViewportContainer"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-script = ExtResource( 3 )
-
-[node name="Label" type="Label" parent="ViewportContainer/Control"]
-margin_left = 118.591
-margin_top = 258.302
-margin_right = 870.591
-margin_bottom = 277.302
-custom_fonts/font = ExtResource( 2 )
-custom_colors/font_color = Color( 0.921569, 1, 0, 1 )
-text = "我们是祖国的花朵，测试一下中文显示。文泉驿等宽微米黑.ttf"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="Button" type="Button" parent="ViewportContainer/Control"]
-margin_left = 102.0
-margin_top = 86.0
-margin_right = 331.0
-margin_bottom = 156.0
-custom_fonts/font = ExtResource( 2 )
-text = "点击切换"
-icon = ExtResource( 4 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
+[node name="MapGui" type="Control" parent="ViewportContainer"]
+script = ExtResource( 6 )
 [connection signal="MoveTo" from="ViewportContainer" to="ViewportContainer/MapJobs" method="_on_ViewportContainer_MoveTo"]
 [connection signal="ZoomTo" from="ViewportContainer" to="ViewportContainer/MapJobs" method="_on_ViewportContainer_ZoomTo"]
-[connection signal="button_down" from="ViewportContainer/Control/Button" to="ViewportContainer/Control" method="_on_Button_button_down"]

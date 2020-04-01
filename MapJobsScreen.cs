@@ -4,7 +4,7 @@ using Janphe.Fantasy.Map;
 
 namespace FantasyMap
 {
-    class MapJobsScreen : Godot.Panel
+    class MapJobsScreen : Panel
     {
         private MapJobs _mapJobs;
         private bool _needUpdate;
@@ -29,8 +29,7 @@ namespace FantasyMap
                 {
                     texture = new ImageTexture();
                     texture.CreateFromImage(image);
-                }
-                else
+                } else
                 {
                     if (image.GetFormat() == texture.GetFormat())
                         texture.SetData(image);
@@ -48,10 +47,21 @@ namespace FantasyMap
             _mapJobs.Options.Height = (int)areaSize.y;
             Debug.Log($"GetParentAreaSize w:{areaSize.x} h:{areaSize.y}");
 
-            _generate();
+            var gui = GetParent().GetNode<Gui>("MapGui");
+            gui.OnGui(o =>
+            {
+                var needUpdate = false;
+
+                _mapJobs.OnGui(o, ref needUpdate);
+
+                if (needUpdate)
+                    generate();
+            });
+
+            generate();
         }
 
-        private void _generate()
+        private void generate()
         {
             _mapJobs.processAsync(t =>
             {
@@ -78,7 +88,7 @@ namespace FantasyMap
         private void _on_ViewportContainer_MoveTo(Vector2 position)
         {
             _mapJobs.Translate(position.x, position.y);
-            _generate();
+            generate();
         }
 
 
@@ -86,7 +96,7 @@ namespace FantasyMap
         {
             _mapJobs.Scale(scale, scale);
             _mapJobs.Translate(position.x, position.y);
-            _generate();
+            generate();
         }
 
     }
