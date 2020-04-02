@@ -19,20 +19,34 @@ namespace Janphe
                 locales[i] = loaded[i] as string;
             return locales;
         }
-        public static void SetLocale(string locale)
-        {
-            TranslationServer.SetLocale(locale);
-        }
+        public static string GetLocale() => TranslationServer.GetLocale();
+        public static void SetLocale(string locale) => TranslationServer.SetLocale(locale);
 
         private Texture texture;
 
+
+        public override void _EnterTree()
+        {
+            base._EnterTree();
+            initImGui();
+        }
+        public override void _ExitTree()
+        {
+            releaseImGui();
+            base._ExitTree();
+        }
+
+        public void Quit()
+        {
+            //var scene = Engine.GetMainLoop() as SceneTree;
+            //scene.Quit();
+            GetTree().Quit();
+        }
+
         public override void _Ready()
         {
-            Engine.TargetFps = 50;//限制帧率
-
             OS.SetImeActive(true);//可以用输入法
-
-            initImGui();
+            Engine.TargetFps = 50;//限制帧率
 
             var io = ImGui.GetIO();
 
@@ -85,7 +99,6 @@ namespace Janphe
 
                 //Debug.Log($"{evt.AsText()}");
             }
-
             else if (@event is InputEventMouseMotion)
             {
                 var evt = @event as InputEventMouseMotion;

@@ -35,11 +35,42 @@ namespace Janphe.Fantasy.Map
             canvas.Scale(_sx, _sy);
             canvas.Translate(_tx, _ty);
 
-            if (isLayerOn(Layers.opt_layers_heightmap))
+            if (isLayersOn(Layers.opt_layers_texture))
+                drawOcean(canvas);
+
+            if (isLayersOn(Layers.opt_layers_heightmap))
                 drawHeightmap(canvas);
-            if (isLayerOn(Layers.opt_layers_cells))
+
+            if (isLayersOn(Layers.opt_layers_cells))
                 drawCells(canvas);
 
+
+        }
+
+        private void drawOcean(SKCanvas canvas)
+        {
+            var opacity = map1OceanLayers.Opacity;
+            var limits = map1OceanLayers.Limits;
+            var chains = map1OceanLayers.Paths;
+
+            var c32 = "#ecf2f9".ToColor();
+            c32.a = (float)opacity;
+
+            var color = new SKColor(c32.r8, c32.g8, c32.b8, c32.a8);
+            var paint = new SKPaint();
+            paint.Color = color;
+            paint.Style = SKPaintStyle.Fill;
+            paint.IsAntialias = true;
+
+            limits.forEach(t =>
+            {
+                var paths = chains.filter(p => p.Key == t).map(c => c.Value);
+                paths.forEach(pp =>
+                {
+                    //pp.forEach(p => canvas.DrawPoints(SKPointMode.Polygon, p, paint));
+                    pp.forEach(p => canvas.DrawPath(curvePath(p), paint));
+                });
+            });
         }
 
         private void drawCells(SKCanvas canvas, float scale = 1)
@@ -127,12 +158,12 @@ namespace Janphe.Fantasy.Map
         private Func<float, SKColor> getColorScheme()
         {
             var s = D3.Spectral;
-            Func<float, SKColor> func = t =>
+            SKColor func(float t)
             {
                 var c = s(t);
                 return new SKColor((uint)c.ToArgb32());
                 //return new SKColor(c.r8, c.g8, c.b8, c.a8);
-            };
+            }
             return func;
         }
         private SKColor getColor(int value, Func<float, SKColor> scheme) => scheme(1 - (value < 20 ? value - 5 : value) / 100f);

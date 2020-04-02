@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using ImGuiNET;
 
@@ -5,6 +6,21 @@ namespace Janphe.Fantasy.Map
 {
     partial class MapJobs
     {
+        private enum Tabs
+        {
+            opt_layers,
+            opt_style,
+            opt_options,
+            opt_tools,
+            opt_about,
+            count
+        }
+        private delegate void DrawTab(Gui gui, ref bool needUpdate, Func<string, string> _);
+
+        private int tabIndex = 0;
+        private DrawTab[] drawTabs = new DrawTab[(int)Tabs.count];
+
+
         private enum Layers
         {
             opt_layers_texture,
@@ -33,7 +49,8 @@ namespace Janphe.Fantasy.Map
             opt_layers_scale,
             count
         }
-        private bool isLayerOn(Layers l) => layers[(int)l];
+        private bool[] layersOn = new bool[(int)Layers.count];
+        private bool isLayersOn(Layers l) => layersOn[(int)l];
 
         private enum Cells
         {
@@ -43,16 +60,30 @@ namespace Janphe.Fantasy.Map
             cells_side,
             count
         }
-        private bool isCellsOn(Cells c) => cells[(int)c];
+        private bool[] cellsOn = new bool[(int)Cells.count];
+        private bool isCellsOn(Cells c) => cellsOn[(int)c];
 
 
         private bool open_1 = true;
-        private bool[] layers = new bool[(int)Layers.count];
-        private bool[] cells = new bool[(int)Cells.count];
+        private int locale = -1;
 
         private void initLayers()
         {
-            layers[(int)Layers.opt_layers_heightmap] = true;
+            layersOn[(int)Layers.opt_layers_heightmap] = true;
+            layersOn[(int)Layers.opt_layers_cells] = true;
+
+            cellsOn[(int)Cells.cells_region] = true;
+            cellsOn[(int)Cells.cells_side] = true;
+
+            var data = Gui.GetLocales();
+            var lang = Gui.GetLocale();
+            locale = Array.FindIndex(data, d => d.StartsWith(lang));
+
+            drawTabs[(int)Tabs.opt_layers] = drawTabLayers;
+            drawTabs[(int)Tabs.opt_style] = drawTabStyle;
+            drawTabs[(int)Tabs.opt_options] = drawTabOptions;
+            drawTabs[(int)Tabs.opt_tools] = drawTabTools;
+            drawTabs[(int)Tabs.opt_about] = drawTabAbout;
         }
 
 
@@ -79,84 +110,114 @@ namespace Janphe.Fantasy.Map
             ImGui.SetNextWindowSize(new Vector2(330, 380), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("opt_wnd", flags))
             {
-                var tab_bar_flags = ImGuiTabBarFlags.None;
-                if (ImGui.BeginTabBar("opt_wnd_tab", tab_bar_flags))
+                ImGui.Columns((int)Tabs.count);
+                for (var n = 0; n < (int)Tabs.count; ++n)
                 {
-                    if (ImGui.BeginTabItem(_("opt_layers")))
-                    {
-                        ImGui.Text(_("opt_layers_preset"));
-                        ImGui.SameLine();
-                        int sl = 0;
-                        ImGui.Combo("?", ref sl, new string[] {
-                            "aaaaaaaaaaaaa",
-                            "bbbbbbbbbbbbb",
-                            "bbbbbbbbbbbbb",
-                            "bbbbbbbbbbbbb",
-                            "bbbbbbbbbbbbb",
-                            "bbbbbbbbbbbbb",
-                            "bbbbbbbbbbbbb"
-                        }, 5);
-                        ImGui.Separator();
-
-                        ImGui.Text(_("opt_layers_displayed"));
-                        ImGui.Columns(3, "opt_layers_cols", false);  // 3-ways, no border
-                        for (int n = 0; n < layers.Length; n++)
-                        {
-                            var last = layers[n];
-                            if (ImGui.Selectable($"{_(((Layers)n).ToString())}", ref layers[n]))
-                            {
-                                if (!needUpdate)
-                                    needUpdate = last != layers[n];
-                            }
-                            ImGui.NextColumn();
-                        }
-                        ImGui.Columns(1);
-                        ImGui.Separator();
-
-                        if (isLayerOn(Layers.opt_layers_cells))
-                        {
-                            ImGui.Columns(2, "opt_layers_cells_cols", false);
-                            for (var n = 0; n < cells.Length; ++n)
-                            {
-                                var last = cells[n];
-                                if (ImGui.Selectable($"{_(((Cells)n).ToString())}", ref cells[n]))
-                                {
-                                    if (!needUpdate)
-                                        needUpdate = last != cells[n];
-                                }
-                                ImGui.NextColumn();
-                            }
-                            ImGui.Columns(1);
-                            ImGui.Separator();
-                        }
-
-                        ImGui.EndTabItem();
-                    }
-                    if (ImGui.BeginTabItem(_("opt_style")))
-                    {
-                        ImGui.Text("This is the Broccoli tab!\nblah blah blah blah blah");
-                        ImGui.EndTabItem();
-                    }
-                    if (ImGui.BeginTabItem(_("opt_options")))
-                    {
-                        ImGui.Text("This is the Cucumber tab!\nblah blah blah blah blah");
-                        ImGui.EndTabItem();
-                    }
-                    if (ImGui.BeginTabItem(_("opt_tools")))
-                    {
-                        ImGui.Text("This is the Cucumber tab!\nblah blah blah blah blah");
-                        ImGui.EndTabItem();
-                    }
-                    if (ImGui.BeginTabItem(_("opt_about")))
-                    {
-                        ImGui.Text(_("opt_about_info"));
-                        ImGui.EndTabItem();
-                    }
-                    ImGui.EndTabBar();
+                    var s = ((Tabs)n).ToString();
+                    if (ImGui.Selectable(_(s), n == tabIndex))
+                    { tabIndex = n; }
+                    ImGui.NextColumn();
                 }
+                ImGui.Columns(1);
+                ImGui.Separator();
+
+                drawTabs[tabIndex]?.Invoke(gui, ref needUpdate, _);
             }
             ImGui.End();
         }
 
+        int sl = 0;
+        string[] presets = new string[] {
+                            "aaaaa",
+                            "bbbbb",
+                            "bbbbb",
+                            "bbbbb",
+                            "bbbbb",
+                            "bbbbb",
+                            "bbbbb"
+                        };
+        private void drawTabLayers(Gui gui, ref bool needUpdate, Func<string, string> _)
+        {
+            ImGui.Text(_("opt_layers_preset"));
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(150);
+            if (ImGui.Combo("?", ref sl, presets, 5))
+            {
+                Debug.Log($"opt_layers_preset:{sl} {presets[sl]}");
+            }
+            ImGui.Separator();
+
+            ImGui.Text(_("opt_layers_displayed"));
+            ImGui.Columns(3, "opt_layers_cols", false);  // 3-ways, no border
+            for (var n = 0; n < layersOn.Length; n++)
+            {
+                var last = layersOn[n];
+                var s = ((Layers)n).ToString();
+                if (ImGui.Selectable($"{_(s)}", ref layersOn[n]))
+                {
+                    if (!needUpdate)
+                        needUpdate = last != layersOn[n];
+                }
+                ImGui.NextColumn();
+            }
+            ImGui.Columns(1);
+            ImGui.Separator();
+
+            if (isLayersOn(Layers.opt_layers_cells))
+            {
+                ImGui.Spacing();
+                ImGui.Text(_("cells_draw_tells"));
+                ImGui.Columns(2, "opt_layers_cells_cols", false);
+
+                bool last;
+                string s;
+
+                for (var n = 0; n < cellsOn.Length; n++)
+                {
+                    last = cellsOn[n];
+                    s = ((Cells)n).ToString();
+
+                    //! label 需要唯一性，否则鼠标点击无效
+                    var signed = n < 2 ? '#' : '^';
+                    if (ImGui.Checkbox($"{signed} {_(s)}", ref cellsOn[n]))
+                    {
+                        if (!needUpdate)
+                            needUpdate = last != cellsOn[n];
+                    }
+                    ImGui.NextColumn();
+                }
+                ImGui.Columns(1);
+                ImGui.Separator();
+            }
+        }
+
+        private void drawTabStyle(Gui gui, ref bool needUpdate, Func<string, string> _) { }
+        private void drawTabOptions(Gui gui, ref bool needUpdate, Func<string, string> _) { }
+        private void drawTabTools(Gui gui, ref bool needUpdate, Func<string, string> _) { }
+        private void drawTabAbout(Gui gui, ref bool needUpdate, Func<string, string> _)
+        {
+            ImGui.Text(_("opt_about_info"));
+            ImGui.Separator();
+
+            if (locale >= 0)
+            {
+                ImGui.Spacing();
+                ImGui.Text(_("opt_about_switch_language"));
+
+                var data = Gui.GetLocales();
+                for (var i = 0; i < data.Length; ++i)
+                {
+                    bool selected = i == locale;
+                    if (ImGui.Selectable($"{_(data[i])}", ref selected))
+                    {
+                        if (selected && i != locale)
+                        {
+                            Gui.SetLocale(data[i]);
+                            locale = i;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

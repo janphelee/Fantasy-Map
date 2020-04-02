@@ -45,6 +45,8 @@ namespace Janphe.Fantasy.Map
             return deltaMs;
         }
 
+        private Map1OceanLayers map1OceanLayers;
+
         private void generate(Stopwatch watcher)
         {
             Random.Seed(Options.MapSeed);
@@ -72,7 +74,8 @@ namespace Janphe.Fantasy.Map
             Debug.Log($"5 openNearSeaLakes {Random.NextDouble()}");
             //Debug.Log($"openLakes: {elapsed(watcher)}ms");
 
-            new Map1OceanLayers(this).generate();
+            map1OceanLayers = new Map1OceanLayers(this);
+            map1OceanLayers.generate();
             Debug.Log($"6 Map1OceanLayers {Random.NextDouble()}");
             //Debug.Log($"drawOceanLayers: {elapsed(watcher)}ms");
 

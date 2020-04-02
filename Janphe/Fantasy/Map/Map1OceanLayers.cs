@@ -37,9 +37,18 @@ namespace Janphe.Fantasy.Map
             outline = outlineLayers["Standard 3"];//default style
         }
 
+        private double _opacity;
+        private int[] _limits;
+        private Dictionary<int, List<SKPoint[]>> _paths;
+
+        public double Opacity => _opacity;
+        public int[] Limits => _limits;
+        public Dictionary<int, List<SKPoint[]>> Paths => _paths;
+
         public void generate()
         {
-            if (outline == "none") return;
+            if (outline == "none")
+                return;
 
             var limits =
                 outline == "random" ?
@@ -50,26 +59,37 @@ namespace Janphe.Fantasy.Map
             var opacity = rn(0.4 / limits.Length, 2);
             var used = new byte[pointsN];
 
-            var paths = new Dictionary<int, SKPath>();
+            var chains = new Dictionary<int, List<SKPoint[]>>();
             foreach (var i in cells.i)
             {
                 var t = cells.t[i];
-                if (t > 0) continue;
+                if (t > 0)
+                    continue;
                 var found = Array.Exists(limits, a => a == t);
-                if (used[i] != 0 || !found) continue;
+                if (used[i] != 0 || !found)
+                    continue;
                 var start = findStart(i, t);
-                if (start < 0) continue;
+                if (start < 0)
+                    continue;
                 used[i] = 1;
                 var chain = connectVertices(start, t, used); // vertices chain to form a path
                 var relaxation = 1 + t * -2; // select only n-th point
                 var relaxed = chain.Where((v, d) => d % relaxation == 0 || Array.Exists(vertices.c[v], c => c >= pointsN)).ToArray();
                 if (relaxed.Length >= 3)
                 {
-                    if (!paths.ContainsKey(t)) paths[t] = new SKPath();
                     var points = relaxed.Select(v => vertices.t_points[v]).ToArray();
-                    paths[t].AddPoly(points.Select(p => new SKPoint((float)p[0], (float)p[1])).ToArray());
+
+                    if (!chains.ContainsKey(t))
+                        chains[t] = new List<SKPoint[]>();
+                    chains[t].Add(
+                      points.Select(p => new SKPoint((float)p[0], (float)p[1])).ToArray()
+                    );
                 }
             }
+
+            _opacity = opacity;
+            _limits = limits;
+            _paths = chains;
 
             // 深浅不一的海岸线
             foreach (var t in limits)
@@ -89,7 +109,8 @@ namespace Janphe.Fantasy.Map
                 return Array.Find(cells.v[i], v => Array.Exists(vertices.c[v], c => c >= pointsN));
             }
             var idx = Array.FindIndex(cells.r_neighbor_r[i], c => cells.t[c] < t || cells.t[c] == 0);
-            if (idx < 0) return idx;
+            if (idx < 0)
+                return idx;
             return cells.v[i][idx];
         }
 
@@ -99,8 +120,10 @@ namespace Janphe.Fantasy.Map
             var odd = .2;
             for (var l = -9; l < 0; l++)
             {
-                if (P(odd)) { odd = .2; limits.Add(l); }
-                else { odd *= 2; }
+                if (P(odd))
+                { odd = .2; limits.Add(l); }
+                else
+                { odd *= 2; }
             }
             return limits.ToArray();
         }
@@ -112,10 +135,12 @@ namespace Janphe.Fantasy.Map
             {
                 for (var i = 0; i < pointsN; i++)
                 {
-                    if (cells.t[i] != t + 1) continue;
+                    if (cells.t[i] != t + 1)
+                        continue;
                     foreach (var e in cells.r_neighbor_r[i])
                     {
-                        if (cells.t[e] == 0) cells.t[e] = (sbyte)t;
+                        if (cells.t[e] == 0)
+                            cells.t[e] = (sbyte)t;
                     }
                 }
             }
@@ -132,15 +157,19 @@ namespace Janphe.Fantasy.Map
                 // cells adjacent to vertex
                 var cc = vertices.c[current];
                 var tc = cc.Where(c => c < cells.t.Length && cells.t[c] == t).ToArray();
-                foreach (var c in tc) used[c] = 1;
+                foreach (var c in tc)
+                    used[c] = 1;
 
                 var v = vertices.v[current]; // neighboring vertices
                 var c0 = cc[0] >= 0 && cc[0] < cells.t.Length && (0 == cells.t[cc[0]] || cells.t[cc[0]] == t - 1);
                 var c1 = cc[1] >= 0 && cc[1] < cells.t.Length && (0 == cells.t[cc[1]] || cells.t[cc[1]] == t - 1);
                 var c2 = cc[2] >= 0 && cc[2] < cells.t.Length && (0 == cells.t[cc[2]] || cells.t[cc[2]] == t - 1);
-                if (/*v[0] != undefined &&*/ v[0] != prev && c0 != c1) current = v[0];
-                else if (/*v[1] != undefined &&*/ v[1] != prev && c1 != c2) current = v[1];
-                else if (/*v[2] != undefined &&*/ v[2] != prev && c0 != c2) current = v[2];
+                if (/*v[0] != undefined &&*/ v[0] != prev && c0 != c1)
+                    current = v[0];
+                else if (/*v[1] != undefined &&*/ v[1] != prev && c1 != c2)
+                    current = v[1];
+                else if (/*v[2] != undefined &&*/ v[2] != prev && c0 != c2)
+                    current = v[2];
                 if (current == chain[chain.Count - 1])
                 {
                     //console.error("Next vertex is not found");
