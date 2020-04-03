@@ -1,80 +1,80 @@
-"key","zh_CN","en_US"
-"i18n","ç®€ä½“ä¸­æ–‡(ä¸­å›½)","è‹±è¯­(ç¾å›½)"
-"powers	","åˆ—å¼º","powers	"
-"great power","å¤§å›½","great power"
-"superpower","è¶…çº§å¤§å›½","superpower"
-"opt_new","æ–°å»º","New Map"
-"opt_save","ä¿å­˜","Save"
-"opt_load","åŠ è½½","Load"
-"opt_reset","é‡ç½®","Reset Zoom"
-"opt_layers","å›¾å±‚","Layers"
-"opt_style","é£æ ¼","Style"
-"opt_options","å‚æ•°","Options"
-"opt_tools","å·¥å…·","Tools"
-"opt_about","å…³äº","About"
-"opt_layers_preset","å›¾å±‚é¢„è®¾:","Layers preset:"
-"opt_layers_displayed","è¯·é€‰æ‹©æ˜¾ç¤ºçš„å›¾å±‚:","Displayed layers:"
-"opt_layers_texture","åº•çº¹","Texture"
-"opt_layers_heightmap","ç­‰é«˜å›¾","Heightmap"
-"opt_layers_biomes","æ°”å€™å¸¦","Biomes"
-"opt_layers_cells","å•å…ƒæ ¼","Cells"
-"opt_layers_grid","ç½‘æ ¼","Grid"
-"opt_layers_coord","åæ ‡","Coordinates"
-"opt_layers_wind","é£å‘","Wind Rose"
-"opt_layers_rivers","æ²³æµ","Rivers"
-"opt_layers_relief","åœ°è²Œ","Relief"
-"opt_layers_religions","ä¿¡ä»°","Religions"
-"opt_layers_cultures","æ–‡åŒ–","Cultures"
-"opt_layers_states","åŠ¿åŠ›","States"
-"opt_layers_provinces","é¢†åœ°","Provinces"
-"opt_layers_zones","ç„¦ç‚¹åŒºåŸŸ","Zones"
-"opt_layers_borders","è¾¹ç•Œ","Borders"
-"opt_layers_routes","è·¯çº¿","Routes"
-"opt_layers_temperature","æ¸©åº¦","Temperature"
-"opt_layers_population","äººå£","Population"
-"opt_layers_precipitation","é™é›¨é‡","Precipitation"
-"opt_layers_labels","åŒºåŸŸåç§°","Labels"
-"opt_layers_icons","æ®ç‚¹å›¾æ ‡","Icons"
-"opt_layers_markers","è‘—ååœ°æ ‡","Markers"
-"opt_layers_rulers","ç›´å°º","Rulers"
-"opt_layers_scale","æ¯”ä¾‹å°º","Scale Bar"
-"opt_style_preset","é£æ ¼é¢„è®¾:","Style preset:"
-"opt_style_select","é€‰æ‹©å…ƒç´ åº”ç”¨æ ·å¼:","Select element:"
-"opt_style_preset","é€æ˜åº¦","Opacity"
-"opt_style_halo_width","å…‰æ™•èŒƒå›´","Halo width"
-"opt_style_halo_opacity","å…‰æ™•é€æ˜åº¦","Halo opacity"
-"opt_style_filter","æ»¤é•œ","Filter"
-"opt_style_global","å…¨å±€æ»¤é•œ:","Toggle global filters:"
-"opt_options_new_map","æ–°å»ºåœ°å›¾å‚æ•°:","New map settings:"
-"opt_options_canvas_size","ç”»å¸ƒå¤§å°","Canvas size"
-"opt_options_canvas_width","å®½","width"
-"opt_options_canvas_height","é«˜","height"
-"opt_options_map_seed","åœ°å›¾ç§å­","Map seed"
-"opt_options_points","é¡¶ç‚¹æ•°é‡","Points number"
-"opt_options_map_name","åœ°å›¾åç§°","Map name"
-"opt_options_map_temp","åœ°å›¾æ¨¡æ¿","Map template"
-"opt_options_cultures","æ–‡åŒ–æ•°é‡","Cultures number"
-"opt_options_cultures_set","æ–‡åŒ–æ± ","Cultures set"
-"opt_options_states","åŠ¿åŠ›æ•°é‡","States number"
-"opt_options_provinces_ratio","é¢†åœ°æ¯”ä¾‹","Provinces ratio"
-"opt_options_size_variety","é¢†åœ°å¤šæ ·åŒ–","Size variety"
-"opt_options_growth_rate","å¢é•¿ç‡","Growth rate"
-"opt_options_towns","ä¹¡é•‡æ•°é‡","Towns number"
-"opt_options_religions","ä¿¡ä»°æ•°é‡","Religions number"
-"opt_tools_configure","ç‚¹å‡»ä¿®æ”¹å›¾å±‚:","Click to configure:"
-"opt_tools_overview","ç‚¹å‡»æµè§ˆå›¾å±‚:","Click to overview:"
-"opt_tools_regenerate","ç‚¹å‡»é‡æ–°ç”Ÿæˆ:","Click to regenerate:"
-"opt_tools_add","ç‚¹å‡»æ·»åŠ :","Click to add:"
-"opt_about_info","æˆ‘ä»¬æ˜¯ç¥–å›½çš„èŠ±æœµã€‚","We are the bestã€‚"
-"opt_about_switch_language","åˆ‡æ¢ç•Œé¢è¯­è¨€:","Switch application language:"
-"opt_box_edit","ç¼–è¾‘","Edit"
-"opt_box_name","åç§°","Name"
-"opt_box_features","ç‰¹è‰²","Features"
-"cells_draw_tells","å•å…ƒæ ¼æ˜¾ç¤º:","Cell Draws:"
-"cells_vert","ä¸‰è§’å½¢","Delaunator"
-"cells_line","æ˜¾ç¤ºè¾¹","Show line"
-"cells_region","ç»´è¯ºå›¾","Voronoi"
-"cells_side","æ˜¾ç¤ºè¾¹","Show line"
-"","",""
-"zh_CN","ç®€ä½“ä¸­æ–‡(ä¸­å›½)","ç®€ä½“ä¸­æ–‡(ä¸­å›½)"
-"en_US","English(US)","English(US)"
+key,zh_CN,en_US
+i18n,¼òÌåÖĞÎÄ(ÖĞ¹ú),Ó¢Óï(ÃÀ¹ú)
+"powers	",ÁĞÇ¿,"powers	"
+great power,´ó¹ú,great power
+superpower,³¬¼¶´ó¹ú,superpower
+opt_new,ĞÂ½¨,New Map
+opt_save,±£´æ,Save
+opt_load,¼ÓÔØ,Load
+opt_reset,ÖØÖÃ,Reset Zoom
+opt_layers,Í¼²ã,Layers
+opt_style,·ç¸ñ,Style
+opt_options,²ÎÊı,Options
+opt_tools,¹¤¾ß,Tools
+opt_about,¹ØÓÚ,About
+opt_layers_preset,Í¼²ãÔ¤Éè:,Layers preset:
+opt_layers_displayed,ÇëÑ¡ÔñÏÔÊ¾µÄÍ¼²ã:,Displayed layers:
+opt_layers_texture,µ×ÎÆ,Texture
+opt_layers_heightmap,µÈ¸ßÍ¼,Heightmap
+opt_layers_biomes,Æøºò´ø,Biomes
+opt_layers_cells,µ¥Ôª¸ñ,Cells
+opt_layers_grid,Íø¸ñ,Grid
+opt_layers_coord,×ø±ê,Coordinates
+opt_layers_wind,·çÏò,Wind Rose
+opt_layers_rivers,ºÓÁ÷,Rivers
+opt_layers_relief,µØÃ²,Relief
+opt_layers_religions,ĞÅÑö,Religions
+opt_layers_cultures,ÎÄ»¯,Cultures
+opt_layers_states,ÊÆÁ¦,States
+opt_layers_provinces,ÁìµØ,Provinces
+opt_layers_zones,½¹µãÇøÓò,Zones
+opt_layers_borders,±ß½ç,Borders
+opt_layers_routes,Â·Ïß,Routes
+opt_layers_temperature,ÎÂ¶È,Temperature
+opt_layers_population,ÈË¿Ú,Population
+opt_layers_precipitation,½µÓêÁ¿,Precipitation
+opt_layers_labels,ÇøÓòÃû³Æ,Labels
+opt_layers_icons,¾İµãÍ¼±ê,Icons
+opt_layers_markers,ÖøÃûµØ±ê,Markers
+opt_layers_rulers,Ö±³ß,Rulers
+opt_layers_scale,±ÈÀı³ß,Scale Bar
+opt_style_preset,·ç¸ñÔ¤Éè:,Style preset:
+opt_style_select,Ñ¡ÔñÔªËØÓ¦ÓÃÑùÊ½:,Select element:
+opt_style_preset,Í¸Ã÷¶È,Opacity
+opt_style_halo_width,¹âÔÎ·¶Î§,Halo width
+opt_style_halo_opacity,¹âÔÎÍ¸Ã÷¶È,Halo opacity
+opt_style_filter,ÂË¾µ,Filter
+opt_style_global,È«¾ÖÂË¾µ:,Toggle global filters:
+opt_options_new_map,ĞÂ½¨µØÍ¼²ÎÊı:,New map settings:
+opt_options_canvas_size,»­²¼´óĞ¡,Canvas size
+opt_options_canvas_width,¿í,width
+opt_options_canvas_height,¸ß,height
+opt_options_map_seed,µØÍ¼ÖÖ×Ó,Map seed
+opt_options_points,¶¥µãÊıÁ¿,Points number
+opt_options_map_name,µØÍ¼Ãû³Æ,Map name
+opt_options_map_temp,µØÍ¼Ä£°å,Map template
+opt_options_cultures,ÎÄ»¯ÊıÁ¿,Cultures number
+opt_options_cultures_set,ÎÄ»¯³Ø,Cultures set
+opt_options_states,ÊÆÁ¦ÊıÁ¿,States number
+opt_options_provinces_ratio,ÁìµØ±ÈÀı,Provinces ratio
+opt_options_size_variety,ÁìµØ¶àÑù»¯,Size variety
+opt_options_growth_rate,Ôö³¤ÂÊ,Growth rate
+opt_options_towns,ÏçÕòÊıÁ¿,Towns number
+opt_options_religions,ĞÅÑöÊıÁ¿,Religions number
+opt_tools_configure,µã»÷ĞŞ¸ÄÍ¼²ã:,Click to configure:
+opt_tools_overview,µã»÷ä¯ÀÀÍ¼²ã:,Click to overview:
+opt_tools_regenerate,µã»÷ÖØĞÂÉú³É:,Click to regenerate:
+opt_tools_add,µã»÷Ìí¼Ó:,Click to add:
+opt_about_info,ÎÒÃÇÊÇ×æ¹úµÄ»¨¶ä¡£,We are the best¡£
+opt_about_switch_language,ÇĞ»»½çÃæÓïÑÔ:,Switch application language:
+opt_box_edit,±à¼­,Edit
+opt_box_name,Ãû³Æ,Name
+opt_box_features,ÌØÉ«,Features
+cells_draw_tells,µ¥Ôª¸ñÏÔÊ¾:,Cell Draws:
+cells_vert,Èı½ÇĞÎ,Delaunator
+cells_line,ÏÔÊ¾±ß,Show line
+cells_region,Î¬ÅµÍ¼,Voronoi
+cells_side,ÏÔÊ¾±ß,Show line
+,,
+zh_CN,¼òÌåÖĞÎÄ(ÖĞ¹ú),¼òÌåÖĞÎÄ(ÖĞ¹ú)
+en_US,English(US),English(US)

@@ -69,8 +69,8 @@ namespace Janphe.Fantasy.Map
 
         private void initLayers()
         {
+            layersOn[(int)Layers.opt_layers_texture] = true;
             layersOn[(int)Layers.opt_layers_heightmap] = true;
-            layersOn[(int)Layers.opt_layers_cells] = true;
 
             cellsOn[(int)Cells.cells_region] = true;
             cellsOn[(int)Cells.cells_side] = true;

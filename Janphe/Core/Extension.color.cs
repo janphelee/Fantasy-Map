@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using SkiaSharp;
 
 namespace Janphe
 {
@@ -31,7 +32,8 @@ namespace Janphe
 
         public static string hex(this Color color, bool alpha = false)
         {
-            if (!alpha) return string.Format("#{0:x2}{1:x2}{2:x2}", color.r8, color.g8, color.b8);
+            if (!alpha)
+                return string.Format("#{0:x2}{1:x2}{2:x2}", color.r8, color.g8, color.b8);
             return string.Format("#{0:x2}{1:x2}{2:x2}{3:x2}", color.r8, color.g8, color.b8, color.a8);
         }
 
@@ -45,7 +47,7 @@ namespace Janphe
             colorString = ExtractHexDigits(colorString);
 
             //Color color = Color.white;
-            Color color = new Color();
+            var color = new Color();
 
             if (colorString.Length == 6)
             {
@@ -89,6 +91,7 @@ namespace Janphe
             }
             return color;
         }
+        public static SKColor SK(this Color color) => new SKColor(color.r8, color.g8, color.b8, color.a8);
 
         /// <summary>
         /// Extracts the hex digits from the string.

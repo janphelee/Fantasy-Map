@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SkiaSharp;
 
 namespace Janphe.Fantasy.Map
 {
@@ -22,8 +23,10 @@ namespace Janphe.Fantasy.Map
             n = cells.i.Length;
         }
 
+        public Dictionary<int, List<SKPoint[]>> Paths { get; private set; }
+
         // Detect and draw the coasline
-        public void drawCoastline()
+        public void generate()
         {
             //var msg = new List<string>();
 
@@ -33,20 +36,28 @@ namespace Janphe.Fantasy.Map
             //DebugHelper.SaveArray("features.cells.txt", data);
             var largestLand = D3.scan(data, (a, b) => b - a);
             //msg.Add($"largestLand {largestLand} {features.Length}");
+
+            var chains = new Dictionary<int, List<SKPoint[]>>();
+
             foreach (var i in cells.i)
             {
                 var startFromEdge = i == 0 && cells.r_height[i] >= 20;
-                if (!startFromEdge && cells.t[i] != -1 && cells.t[i] != 1) continue; // non-edge cell
+                if (!startFromEdge && cells.t[i] != -1 && cells.t[i] != 1)
+                    continue; // non-edge cell
                 var f = cells.f[i];
-                if (used[f] != 0) continue; // already connected
-                if (features[f].type == "ocean") continue; // ocean cell
+                if (used[f] != 0)
+                    continue; // already connected
+                if (features[f].type == "ocean")
+                    continue; // ocean cell
 
                 var type = features[f].type == "lake" ? 1 : -1; // type value to search for
                 var start = findStart(i, type);
-                if (start == -1) continue; // cannot start here
+                if (start == -1)
+                    continue; // cannot start here
 
                 var vchain = connectVertices(start, type);
-                if (features[f].type == "lake") relax(vchain, 1.2);
+                if (features[f].type == "lake")
+                    relax(vchain, 1.2);
                 used[f] = 1;
                 var points = vchain.Select(v => vertices.t_points[v]).ToArray();
                 var area = D3.polygonArea(points); // area with lakes/islands
@@ -64,9 +75,15 @@ namespace Janphe.Fantasy.Map
                 features[f].area = Math.Abs(area);
                 features[f].vertices = vchain;
                 //msg.Add(DebugHelper.toString(vchain));
+
+                if (!chains.ContainsKey(f))
+                    chains[f] = new List<SKPoint[]>();
+                chains[f].Add(points.Select(p => new SKPoint((float)p[0], (float)p[1])).ToArray());
             }
             //DebugHelper.SaveArray("drawCoastline.txt", msg);
             //DebugHelper.SaveArray("vchain.txt", msg);
+
+            Paths = chains;
         }
 
 
@@ -94,11 +111,14 @@ namespace Janphe.Fantasy.Map
                 var c0 = c[0] >= n || cells.t[c[0]] == t;
                 var c1 = c[1] >= n || cells.t[c[1]] == t;
                 var c2 = c[2] >= n || cells.t[c[2]] == t;
-                if (v[0] != prev && c0 != c1) current = v[0];
+                if (v[0] != prev && c0 != c1)
+                    current = v[0];
                 else
-                if (v[1] != prev && c1 != c2) current = v[1];
+                if (v[1] != prev && c1 != c2)
+                    current = v[1];
                 else
-                if (v[2] != prev && c0 != c2) current = v[2];
+                if (v[2] != prev && c0 != c2)
+                    current = v[2];
                 if (current == chain[chain.Count - 1])
                 {
                     Debug.LogWarning("Next vertex is not found");

@@ -46,7 +46,8 @@ namespace Janphe.Fantasy.Map
         }
 
         private Map1OceanLayers map1OceanLayers;
-
+        private Map4Coastline map4Coastline;
+        private Map5BiomesSystem map5Biomes;
         private void generate(Stopwatch watcher)
         {
             Random.Seed(Options.MapSeed);
@@ -105,7 +106,9 @@ namespace Janphe.Fantasy.Map
 
             new Map3Features(this).reMarkFeatures();
             //Debug.Log($"reMarkFeatures: {elapsed(watcher)}ms");
-            new Map4Coastline(this).drawCoastline();
+
+            map4Coastline = new Map4Coastline(this);
+            map4Coastline.generate();
             Debug.Log($"12 drawCoastline {Random.NextDouble()}");
             //Debug.Log($"drawCoastline: {elapsed(watcher)}ms");
 
@@ -120,12 +123,13 @@ namespace Janphe.Fantasy.Map
             Debug.Log($"14 Map4Rivers {Random.NextDouble()}");
             //Debug.Log($"generateRivers: {elapsed(watcher)}ms");
 
-            var biomes = new Map5BiomesSystem(this);
-            biomes.defineBiomes();
+            map5Biomes = new Map5BiomesSystem(this);
+            map5Biomes.defineBiomes();
             Debug.Log($"15 defineBiomes {Random.NextDouble()}");
             //DebugHelper.SaveArray("pack.cells.biome.txt", pack.cells.biome);
             //Debug.Log($"defineBiomes: {elapsed(watcher)}ms");
-            biomes.rankCells();
+            map5Biomes.rankCells();
+            map5Biomes.generate();
             //DebugHelper.SaveArray("pack.cells.s.txt", pack.cells.s);
             //DebugHelper.SaveArray("pack.cells.pop.txt", pack.cells.pop);
             Debug.Log($"16 rankCells {Random.NextDouble()} rankCells: {elapsed(watcher)}ms");

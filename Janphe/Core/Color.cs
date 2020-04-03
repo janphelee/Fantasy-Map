@@ -756,5 +756,11 @@ namespace Janphe
         {
             return a + (b - a) * t;
         }
+
+        public Color Opacity(float a)
+        {
+            this.a = a;
+            return this;
+        }
     }
 }

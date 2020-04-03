@@ -37,13 +37,9 @@ namespace Janphe.Fantasy.Map
             outline = outlineLayers["Standard 3"];//default style
         }
 
-        private double _opacity;
-        private int[] _limits;
-        private Dictionary<int, List<SKPoint[]>> _paths;
-
-        public double Opacity => _opacity;
-        public int[] Limits => _limits;
-        public Dictionary<int, List<SKPoint[]>> Paths => _paths;
+        public float Opacity { get; private set; }
+        public int[] Limits { get; private set; }
+        public Dictionary<int, List<SKPoint[]>> Paths { get; private set; }
 
         public void generate()
         {
@@ -87,9 +83,9 @@ namespace Janphe.Fantasy.Map
                 }
             }
 
-            _opacity = opacity;
-            _limits = limits;
-            _paths = chains;
+            Opacity = (float)opacity;
+            Limits = limits;
+            Paths = chains;
 
             // 深浅不一的海岸线
             foreach (var t in limits)

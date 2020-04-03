@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Janphe\Fantasy\Map\MapJobs.Gui.cs" />
+    <Compile Include="Janphe\Fantasy\Map\Style.cs" />
     <Compile Include="Janphe\Gui\Gui.godot.cs" />
     <Compile Include="Janphe\Gui\Gui.cs" />
     <Compile Include="MapJobsScreen.cs" />
