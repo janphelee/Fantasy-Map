@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using SkiaSharp;
 
 namespace Janphe.Fantasy.Map
 {
+    using static Utils;
+
     internal class Map2Precipitation
     {
         private Grid grid { get; set; }
@@ -62,15 +65,19 @@ namespace Janphe.Fantasy.Map
                     westerly.Add(new double[] { c, latMod, tier });
                 else if (winds[tier] > 220 && winds[tier] < 320)
                     easterly.Add(new double[] { c + cellsX - 1, latMod, tier });
-                if (winds[tier] > 100 && winds[tier] < 260) northerly++;
-                else if (winds[tier] > 280 || winds[tier] < 80) southerly++;
+                if (winds[tier] > 100 && winds[tier] < 260)
+                    northerly++;
+                else if (winds[tier] > 280 || winds[tier] < 80)
+                    southerly++;
                 //msg.Add($"{ i} { c} { northerly} { southerly} {lat} {tier} {winds[tier]}");
             }
             //msg.Add($"---------------------{modifier}");
 
             // distribute winds by direction
-            if (westerly.Count > 0) passWind(westerly, 120 * modifier, 1, cellsX);
-            if (easterly.Count > 0) passWind(easterly, 120 * modifier, -1, cellsX);
+            if (westerly.Count > 0)
+                passWind(westerly, 120 * modifier, 1, cellsX);
+            if (easterly.Count > 0)
+                passWind(easterly, 120 * modifier, -1, cellsX);
 
             double vertT = (southerly + northerly);
             if (northerly > 0)
@@ -97,7 +104,8 @@ namespace Janphe.Fantasy.Map
             for (int i = 0; i < source.Count; ++i)
             {
                 var first = source[i];
-                maxPrec = Math.Min(maxPrecInit * first[1], 255); ;
+                maxPrec = Math.Min(maxPrecInit * first[1], 255);
+                ;
                 passNext((int)first[0], maxPrec, next, steps);
             }
         }
@@ -114,12 +122,14 @@ namespace Janphe.Fantasy.Map
             var prec = cells.prec;
             double humidity = maxPrec - cells.r_height[first]; // initial water amount
             //msg.Add($"passNext {first} {humidity} {maxPrec} {next} {steps}");
-            if (humidity <= 0) return; // if first cell in row is too elevated cosdired wind dry
+            if (humidity <= 0)
+                return; // if first cell in row is too elevated cosdired wind dry
             for (int s = 0, current = first; s < steps; s++, current += next)
             {
                 //msg.Add($"{first} {s} {current} {humidity}");
                 // no flux on permafrost
-                if (cells.temp[current] < -5) continue;
+                if (cells.temp[current] < -5)
+                    continue;
                 // water cell
                 if (cells.r_height[current] < 20)
                 {
@@ -146,7 +156,8 @@ namespace Janphe.Fantasy.Map
 
         private double getPrecipitation(double humidity, int i, int n)
         {
-            if (cells.r_height[i + n] > 85) return humidity; // 85 is max passable height
+            if (cells.r_height[i + n] > 85)
+                return humidity; // 85 is max passable height
             var normalLoss = Math.Max(humidity / (10 * modifier), 1); // precipitation in normal conditions
             var diff = Math.Max(cells.r_height[i + n] - cells.r_height[i], 0); // difference in height
             var mod = Math.Pow(cells.r_height[i + n] / 70.0, 2); // 50 stands for hills, 70 for mountains
@@ -184,5 +195,27 @@ namespace Janphe.Fantasy.Map
         //    if (southerly) wind.append("text").attr("x", graphWidth / 2).attr("y", graphHeight - 20).text("\u21C8");
         //}
         //();
+
+        public void draw(SKCanvas canvas)
+        {
+            var data = cells.i.filter(i => cells.h[i] >= 20 && cells.prec[i] > 0);
+            var paint = new SKPaint() { IsAntialias = true };
+
+            // attr("stroke", "#000000").attr("stroke-width", .1).attr("fill", "#003dff")
+            data.forEach(d =>
+            {
+                var p = grid.points[d];
+                var r = rn(Math.Max(Math.Sqrt(cells.prec[d] * .5), .8), 2);
+
+                paint.Color = "#003dff".ToColor().SK();
+                paint.Style = SKPaintStyle.Fill;
+                canvas.DrawCircle((float)p[0], (float)p[1], (float)r, paint);
+
+                paint.Color = SKColors.Black;
+                paint.Style = SKPaintStyle.Stroke;
+                paint.StrokeWidth = 0.1f;
+                canvas.DrawCircle((float)p[0], (float)p[1], (float)r, paint);
+            });
+        }
     }
 }

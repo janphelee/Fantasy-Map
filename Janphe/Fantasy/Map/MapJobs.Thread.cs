@@ -23,7 +23,6 @@ namespace Janphe.Fantasy.Map
                 PointsNumber = 1,
                 PrecipitationInput = 127,
                 WindsInput = new int[] { 270, 90, 225, 315, 135, 315 },
-                TemperatureEquatorInput = 25,
                 TemperaturePoleInput = -26,//[-30,30]
                 HeightExponentInput = 1.8f,//[1.5,2.1]
 
@@ -35,6 +34,8 @@ namespace Janphe.Fantasy.Map
                 PowerInput = 4,
                 ReligionsNumber = 7,
             };
+            Options.TemperatureEquator = new Options.Value() { min = -30, max = 30, value = 18 };
+            Options.TemperatureScale = "°C";
         }
 
         private long _lastTicks;
@@ -46,8 +47,11 @@ namespace Janphe.Fantasy.Map
         }
 
         private Map1OceanLayers map1OceanLayers;
+        private Map1Temperatures map1Temperatures;
         private Map4Coastline map4Coastline;
         private Map5BiomesSystem map5Biomes;
+        private Map2Precipitation map2Precipitation;
+
         private void generate(Stopwatch watcher)
         {
             Random.Seed(Options.MapSeed);
@@ -88,11 +92,15 @@ namespace Janphe.Fantasy.Map
             Debug.Log($"8 calculateMapCoordinates {Random.NextDouble()}");
             //Debug.Log(JsonUtility.ToJson(mapCoordinates));
 
-            new Map1Temperatures(this).calculateTemperatures();
+            map1Temperatures = new Map1Temperatures(this);
+            map1Temperatures.calculateTemperatures();
+            map1Temperatures.generate();
             Debug.Log($"9 calculateTemperatures {Random.NextDouble()}");
             //Debug.Log($"calculateTemperatures: {elapsed(watcher)}ms");
             //DebugHelper.SaveArray("temp.txt", grid.cells.temp);
-            new Map2Precipitation(this).generatePrecipitation();
+
+            map2Precipitation = new Map2Precipitation(this);
+            map2Precipitation.generatePrecipitation();
             Debug.Log($"10 generatePrecipitation {Random.NextDouble()}");
             //Debug.Log($"generatePrecipitation: {elapsed(watcher)}ms");
             //DebugHelper.SaveArray("prec.txt", grid.cells.prec);

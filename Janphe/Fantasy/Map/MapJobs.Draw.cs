@@ -50,6 +50,12 @@ namespace Janphe.Fantasy.Map
             if (isLayersOn(Layers.opt_layers_rivers))
                 drawRivers(canvas);
 
+            if (isLayersOn(Layers.opt_layers_temperature))
+                map1Temperatures.draw(canvas, linePath);
+
+            if (isLayersOn(Layers.opt_layers_precipitation))
+                map2Precipitation.draw(canvas);
+
             if (isLayersOn(Layers.opt_layers_cells))
                 drawCells(canvas);
         }
@@ -247,7 +253,16 @@ namespace Janphe.Fantasy.Map
 
         private void drawRivers(SKCanvas canvas)
         {
+            var chains = pack.riverPaths;
 
+            var paint = new SKPaint() { IsAntialias = true };
+            paint.Style = SKPaintStyle.Fill;
+            paint.Color = "#5d97bb".ToColor().SK();
+
+            chains.forEach((d, i) =>
+            {
+                canvas.DrawPath(curvePath(d.path.map(p => new SKPoint((float)p[0], (float)p[1])).ToArray()), paint);
+            });
         }
 
         private void drawCells(SKCanvas canvas, float scale = 1)
@@ -345,11 +360,11 @@ namespace Janphe.Fantasy.Map
         }
         private SKColor getColor(int value, Func<float, SKColor> scheme) => scheme(1 - (value < 20 ? value - 5 : value) / 100f);
         private SKPoint scale(SKPoint a, float b) => new SKPoint(a.X * b, a.Y * b);
-        private SKPath curvePath(SKPoint[] points)
+        private SKPath curvePath(IList<SKPoint> points)
         {
             var path = new SKPath();
 
-            var n = points.Length;
+            var n = points.Count;
             var p0 = points[n - 1];
             var p1 = points[0];
             path.MoveTo(scale(p0 + p1, 0.5f));
@@ -361,6 +376,21 @@ namespace Janphe.Fantasy.Map
                 var p2 = scale(p0 + p1, 0.5f);
                 //path.CubicTo(p0, p0, p2);
                 path.ConicTo(p0, p2, 0.5f);
+            }
+            path.Close();
+
+            return path;
+        }
+
+        private SKPath linePath(IList<SKPoint> points)
+        {
+            var path = new SKPath();
+            path.MoveTo(points[0]);
+
+            var n = points.Count;
+            for (var i = 1; i < n; ++i)
+            {
+                path.LineTo(points[i]);
             }
             path.Close();
 

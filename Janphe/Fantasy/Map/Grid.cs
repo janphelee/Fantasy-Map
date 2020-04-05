@@ -109,6 +109,8 @@ namespace Janphe.Fantasy.Map
             public int[][] r_raycast_s { get; set; }
             public int[][] r_neighbor_r { get; set; }//c = adjacent cells,
             public bool[] r_near_border { get; set; } //b = near-border cell
+            public bool[] b => r_near_border;
+
             public int[] i { get; set; }  //i= indices //TODO public ushort[] i { get; set; }
             public byte[] r_height { get; set; } //h = HeightmapGenerator
 
@@ -194,10 +196,12 @@ namespace Janphe.Fantasy.Map
         public IList<double[]> getFeaturePoints(int f)
         {
             var ff = features[f];
-            if (ff == null) return null;
+            if (ff == null)
+                return null;
 
             var vchain = ff.vertices;
-            if (vchain == null) return null;
+            if (vchain == null)
+                return null;
 
             return vchain.Select(v => vertices.t_points[v]).ToList();
         }

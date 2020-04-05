@@ -37,6 +37,7 @@ namespace Janphe
         public static int indexOf<T>(this T[] d, T c) { return Array.IndexOf(d, c); }
 
         public static T find<T>(this IList<T> d, Func<T, bool> func) { for (var i = 0; i < d.Count; ++i) if (func(d[i])) return d[i]; return default(T); }
+        public static int findIndex<T>(this IList<T> d, Func<T, bool> func) { for (var i = 0; i < d.Count; ++i) if (func(d[i])) return i; return -1; }
         public static bool some<T>(this T[] d, Func<T, bool> func) { return Array.Exists(d, x => func(x)); }
         public static bool some<T>(this IEnumerable<T> d, Func<T, bool> func) { return some(d.ToArray(), func); }
 
@@ -44,11 +45,14 @@ namespace Janphe
 
         public static IEnumerable<T> filter<T>(this IList<T> d, Func<T, bool> func) { return d.Where(func); }
         public static IEnumerable<T> filter<T>(this IEnumerable<T> d, Func<T, bool> func) { return d.Where(func); }
+        public static IEnumerable<T> filter<T>(this IEnumerable<T> d, Func<T, int, bool> func) { return d.Where(func); }
         public static T find<T>(this IEnumerable<T> d, Func<T, bool> func) { return d.Single(func); }
         public static bool finded<T>(this IEnumerable<T> d, Func<T, bool> func)
         {
             bool ret;
-            try { d.Single(func); ret = true; } catch { ret = false; }
+            try
+            { d.Single(func); ret = true; }
+            catch { ret = false; }
             return ret;
         }
 

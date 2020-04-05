@@ -2,6 +2,13 @@ namespace Janphe.Fantasy.Map
 {
     internal class Options
     {
+        public struct Value
+        {
+            public float min;
+            public float max;
+            public float value;
+        }
+
         public int MapSeed { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
@@ -32,7 +39,11 @@ namespace Janphe.Fantasy.Map
         public int PrecipitationInput { get; set; }//[0, 500]
         public int[] WindsInput { get; set; }
 
-        public float TemperatureEquatorInput { get; set; }
+        private Value _temperatureEquator;
+        public ref Value TemperatureEquator => ref _temperatureEquator;
+
+        public string TemperatureScale { get; set; }
+
         public float TemperaturePoleInput { get; set; }
         public float HeightExponentInput { get; set; }
 

@@ -73,6 +73,7 @@ namespace Janphe
         public static double mean(IEnumerable<int> d) { return d.Average(); }
         public static double sum(IEnumerable<int> d) { return d.Sum(); }
         public static double sum(IEnumerable<double> d) { return d.Sum(); }
+        public static T min<T>(IEnumerable<T> d) { return d.Min(); }
         public static T max<T>(IEnumerable<T> d) { return d.Max(); }
 
 

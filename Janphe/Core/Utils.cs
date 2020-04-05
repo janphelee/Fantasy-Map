@@ -13,7 +13,7 @@ namespace Janphe
         public static bool @is(string d) { return !string.IsNullOrEmpty(d); }
 
         // C#中的Math.Round()默认并不是使用的"四舍五入"法。
-        public static double round(double x) { return Math.Round(x, MidpointRounding.AwayFromZero); }
+        public static int round(double x) { return (int)Math.Round(x, MidpointRounding.AwayFromZero); }
 
         public static double rn(double v, int d = 0) { var m = Math.Pow(10, d); return round(v * m) / m; }
         public static double rn(decimal v, int d = 0) { return rn((double)v, d); }
@@ -35,7 +35,8 @@ namespace Janphe
             //int sign = r[0] == '-' ? -1 : 1;//以负数开始
 
             var range = s.Contains("-") ? s.Split('-') : null;
-            if (range == null || range.Length != 2) { return 0; }
+            if (range == null || range.Length != 2)
+            { return 0; }
 
             var count = rand(double.Parse(range[0]), double.Parse(range[1]));
             return count;
@@ -50,7 +51,8 @@ namespace Janphe
         public static double rand() { return Random.NextDouble(); }
         public static double rand(double min, double max = 0)
         {
-            if (max < min) { max = min; min = 0; }
+            if (max < min)
+            { max = min; min = 0; }
             return Math.Floor(Random.NextDouble() * (max - min + 1)) + min;
         }
 
@@ -175,7 +177,8 @@ namespace Janphe
         public static double hypot(double[] d)
         {
             double s = 0;
-            for (var i = 0; i < d.Length; ++i) s += d[i] * d[i];
+            for (var i = 0; i < d.Length; ++i)
+                s += d[i] * d[i];
             return Math.Sqrt(s);
         }
         public static double hypot(double x, double y)
@@ -229,7 +232,8 @@ namespace Janphe
         // remove vowels from the end of the string
         public static string trimVowels(string str)
         {
-            while (str.Length > 3 && vowel(last(str))) { str = str.slice(0, -1); }
+            while (str.Length > 3 && vowel(last(str)))
+            { str = str.slice(0, -1); }
             return str;
         }
 
@@ -237,22 +241,34 @@ namespace Janphe
         public static string getAdjective(string str)
         {
             // special cases for some suffixes
-            if (str.Length > 8 && str.slice(-6) == "orszag") return str.slice(0, -6);
-            if (str.Length > 6 && str.slice(-4) == "stan") return str.slice(0, -4);
-            if (P(.5) && str.slice(-4) == "land") return str + "ic";
-            if (str.slice(-4) == " Guo") str = str.slice(0, -4);
+            if (str.Length > 8 && str.slice(-6) == "orszag")
+                return str.slice(0, -6);
+            if (str.Length > 6 && str.slice(-4) == "stan")
+                return str.slice(0, -4);
+            if (P(.5) && str.slice(-4) == "land")
+                return str + "ic";
+            if (str.slice(-4) == " Guo")
+                str = str.slice(0, -4);
 
             // don't change is name ends on suffix
-            if (str.slice(-2) == "an") return str;
-            if (str.slice(-3) == "ese") return str;
-            if (str.slice(-1) == "i") return str;
+            if (str.slice(-2) == "an")
+                return str;
+            if (str.slice(-3) == "ese")
+                return str;
+            if (str.slice(-1) == "i")
+                return str;
 
             var end = str.slice(-1); // last letter of string
-            if (end == "a") return str += "n";
-            if (end == "o") return str = trimVowels(str) + "an";
-            if (vowel(end) || end == "c") return str += "an"; // ceiuy
-            if (end == "m" || end == "n") return str += "ese";
-            if (end == "q") return str += "i";
+            if (end == "a")
+                return str += "n";
+            if (end == "o")
+                return str = trimVowels(str) + "an";
+            if (vowel(end) || end == "c")
+                return str += "an"; // ceiuy
+            if (end == "m" || end == "n")
+                return str += "ese";
+            if (end == "q")
+                return str += "i";
             return trimVowels(str) + "ian";
         }
 
