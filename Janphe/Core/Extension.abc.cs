@@ -6,22 +6,36 @@ namespace Janphe
 {
     public static partial class Extension
     {
-        public static TSource Aggregate<TSource>(this IEnumerable<TSource> source, Func<TSource, TSource, int, TSource> func)
+        public static T Aggregate<T>(this IEnumerable<T> d, Func<T, T, int, T> func)
         {
             int index = 0;
-            using (IEnumerator<TSource> enumerator = source.GetEnumerator())
+            using (var enumerator = d.GetEnumerator())
             {
                 enumerator.MoveNext();
                 index++;
-                TSource current = enumerator.Current;
+                var result = enumerator.Current;
                 while (enumerator.MoveNext())
-                    current = func(current, enumerator.Current, index++);
-                return current;
+                    result = func(result, enumerator.Current, index++);
+                return result;
+            }
+        }
+        public static S Aggregate<T, S>(this IList<T> d, Func<S, T, int, IList<T>, S> func, S seed)
+        {
+            int index = -1;
+            using (var enumerator = d.GetEnumerator())
+            {
+                enumerator.MoveNext();
+                index++;
+                var result = seed;
+                while (enumerator.MoveNext())
+                    result = func(result, enumerator.Current, index++, d);
+                return result;
             }
         }
 
         public static T reduce<T>(this T[] d, Func<T, T, int, T[], T> func) { return d.Aggregate((s, v, i) => func(s, v, i, d)); }
         public static T reduce<T>(this IList<T> d, Func<T, T, T> func, T seed) { return d.Aggregate(seed, (s, v) => func(s, v)); }
+        public static S reduce<T, S>(this IList<T> d, Func<S, T, int, IList<T>, S> func, S seed) => Aggregate(d, func, seed);
 
         public static string reduce(this string d, Func<string, char, int, string, string> func, string seed)
         {
@@ -46,7 +60,10 @@ namespace Janphe
         public static IEnumerable<T> filter<T>(this IList<T> d, Func<T, bool> func) { return d.Where(func); }
         public static IEnumerable<T> filter<T>(this IEnumerable<T> d, Func<T, bool> func) { return d.Where(func); }
         public static IEnumerable<T> filter<T>(this IEnumerable<T> d, Func<T, int, bool> func) { return d.Where(func); }
-        public static T find<T>(this IEnumerable<T> d, Func<T, bool> func) { return d.Single(func); }
+
+        //public static T find<T>(this IEnumerable<T> d, Func<T, bool> func) { return d.Single(func); }
+        public static T find<T>(this IEnumerable<T> d, Func<T, bool> func) { return d.First(func); }
+
         public static bool finded<T>(this IEnumerable<T> d, Func<T, bool> func)
         {
             bool ret;

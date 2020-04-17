@@ -75,6 +75,7 @@ namespace Janphe
         public static double sum(IEnumerable<double> d) { return d.Sum(); }
         public static T min<T>(IEnumerable<T> d) { return d.Min(); }
         public static T max<T>(IEnumerable<T> d) { return d.Max(); }
+        public static T[] extent<T>(IEnumerable<T> d) { return new T[] { d.Min(), d.Max() }; }
 
 
         public static int[] range(int n)

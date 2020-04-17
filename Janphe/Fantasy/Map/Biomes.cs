@@ -11,7 +11,7 @@ namespace Janphe.Fantasy.Map
         public byte[][] biomesMartix { get; set; }
         public byte[] habitability { get; set; }
         public byte[] iconsDensity { get; set; }
-        public Dictionary<string, int>[] icons { get; set; }
+        public string[][] icons { get; set; }
         public byte[] cost { get; set; }
 
         public int getBiomeId(double moisture, int temperature, int height)

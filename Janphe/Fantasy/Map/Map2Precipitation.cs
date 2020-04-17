@@ -22,13 +22,12 @@ namespace Janphe.Fantasy.Map
             mapCoordinates = map.mapCoordinates;
             winds = map.Options.WindsInput;
 
-            modifier = map.Options.PrecipitationInput / 100; // user's input
+            modifier = map.Options.PrecipitationInput / 100d; // user's input
         }
 
         // simplest precipitation model
         public void generatePrecipitation()
         {
-            Debug.Log($"generatePrecipitation modifier:{modifier}");
             cells.prec = new byte[cells.i.Length];// precipitation array
 
             var cellsX = (int)grid.cellsX;
@@ -54,6 +53,7 @@ namespace Janphe.Fantasy.Map
 
             //foreach (var w in winds) msg.Add(w.ToString());
             //msg.Add($"{mapCoordinates.latN} {mapCoordinates.latT} {cellsX} {cellsY}");
+
             for (var i = 0; i < range.Length; ++i)
             {
                 var c = range[i];
@@ -94,7 +94,7 @@ namespace Janphe.Fantasy.Map
                 var maxPrecS = southerly / vertT * 60 * modifier * latModS;
                 passWind(D3.range(cells.i.Length - cellsX, cells.i.Length, 1), maxPrecS, -cellsX, cellsY);
             }
-            //DebugHelper.SaveArray("generatePrecipitation.txt", msg);
+            //Debug.SaveArray("generatePrecipitation.txt", msg);
         }
         //private List<string> msg = new List<string>();
 
@@ -105,7 +105,6 @@ namespace Janphe.Fantasy.Map
             {
                 var first = source[i];
                 maxPrec = Math.Min(maxPrecInit * first[1], 255);
-                ;
                 passNext((int)first[0], maxPrec, next, steps);
             }
         }

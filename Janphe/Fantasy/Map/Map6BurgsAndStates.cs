@@ -7,6 +7,8 @@ namespace Janphe.Fantasy.Map
 {
     using static Utils;
     using static Grid;
+    using SkiaSharp;
+    using System.Collections;
 
     internal class Map6BurgsAndStates
     {
@@ -34,11 +36,11 @@ namespace Janphe.Fantasy.Map
             Routes = map.Routes;
 
             powerInput = map.Options.PowerInput;
-            regionsInput = map.Options.ReligionsNumber;
+            regionsInput = map.Options.RegionsNumber;
             manorsInput = map.Options.ManorsInput;
             neutralInput = map.Options.NeutralInput;
             statesNeutral = map.Options.StatesNeutral;
-            Debug.Log($"BurgsAndStates {powerInput} {regionsInput} {manorsInput} {neutralInput} {statesNeutral}");
+            Debug.Log($"BurgsAndStates powerInput:{powerInput} regionsInput:{regionsInput} manorsInput:{manorsInput} neutralInput:{neutralInput} statesNeutral:{statesNeutral}");
 
             graphWidth = map.Options.Width;
             graphHeight = map.Options.Height;
@@ -54,15 +56,22 @@ namespace Janphe.Fantasy.Map
             cells.road = new ushort[n];// cell road power
             cells.crossroad = new ushort[n];// cell cell crossroad power
 
-            pack.burgs = placeCapitals();
-            pack.states = new List<State>();
-            createStates();
+            pack.burgs = placeStateCapitals(); // 势力首都
+            pack.states = createStates();
+
+            //Debug.SaveArray("pack.burgs.txt", pack.burgs.map(s => s == null ? "" : $"{'{'}'cell':{s.cell},'x':{s.x},'y':{s.y},'state':{s.state},'i':{s.i},'culture':{s.culture},'name':'{s.name}','feature':{s.feature},'capital':{s.capital}{'}'}"));
+            //Debug.SaveArray("pack.states.txt", pack.states.map(s => s == null ? "" : $"{'{'}'i':{s.i},'color':'{s.color}','name':'{s.name}','expansionism':{s.expansionism},'capital':{s.capital},'type':'{s.type}','center':{s.center},'culture':{s.culture}{'}'}"));
+
             var capitalRoutes = Routes.getRoads();
 
             placeTowns();
             expandStates();
             normalizeStates();
+            //Debug.SaveArray("pack.burgs.txt", pack.burgs.map(s => s == null ? "" : $"{'{'}'cell':{s.cell},'x':{s.x},'y':{s.y},'state':{s.state},'i':{s.i},'culture':{s.culture},'name':'{s.name}','feature':{s.feature},'capital':{s.capital}{'}'}"));
+            //Debug.SaveArray("pack.states.txt", pack.states.map(s => s == null ? "" : $"{'{'}'i':{s.i},'color':'{s.color}','name':'{s.name}','expansionism':{s.expansionism},'capital':{s.capital},'type':'{s.type}','center':{s.center},'culture':{s.culture}{'}'}"));
+
             var townRoutes = Routes.getTrails();
+
             specifyBurgs();
 
             var oceanRoutes = Routes.getSearoutes();
@@ -75,7 +84,7 @@ namespace Janphe.Fantasy.Map
             Routes.draw(capitalRoutes, townRoutes, oceanRoutes);
             drawBurgs();
         }
-        private List<Burg> placeCapitals()
+        private List<Burg> placeStateCapitals()
         {
             var cells = pack.cells;
             var count = regionsInput;
@@ -120,7 +129,9 @@ namespace Janphe.Fantasy.Map
                 {
                     Debug.LogWarning("Cannot place capitals with current spacing. Trying again with reduced spacing");
                     burgsTree = D3.quadtree();
-                    i = -1; burgs = new List<Burg>() { null }; spacing /= 1.2;
+                    i = -1;
+                    burgs = new List<Burg>() { null };
+                    spacing /= 1.2;
                 }
             }
 
@@ -128,21 +139,21 @@ namespace Janphe.Fantasy.Map
             return burgs;
         }
         // For each capital create a state
-        private void createStates()
+        private List<State> createStates()
         {
+            var burgs = pack.burgs;
             var cells = pack.cells;
             var cultures = pack.cultures;
 
-            var burgs = pack.burgs;
-            var states = pack.states;
-
-            states.Clear(); states.Add(new State { i = 0, name = "Neutrals" });
-
             var colors = getColors(burgs.Count - 1);
+            var states = new List<State>();
+            states.Add(new State { i = 0, name = "Neutrals" });
+            //Debug.Log($"createStates.getColors {colors.join(",")}");
 
             for (ushort i = 0; i < burgs.Count; ++i)
             {
-                if (i == 0) continue;// skip first element
+                if (i == 0)
+                    continue;// skip first element
 
                 // burgs data
                 var b = burgs[i];
@@ -163,7 +174,7 @@ namespace Janphe.Fantasy.Map
                     i = i,
                     color = colors[i - 1],
                     name = name,
-                    expansionism = (float)expansionism,
+                    expansionism = expansionism,
                     capital = i,
                     type = type,
                     center = b.cell,
@@ -171,6 +182,7 @@ namespace Janphe.Fantasy.Map
                 });
                 cells.burg[b.cell] = i;
             }
+            return states;
         }
         // place secondary settlements based on geo and economical evaluation
         private void placeTowns()
@@ -195,10 +207,13 @@ namespace Janphe.Fantasy.Map
             {
                 for (var i = 0; burgsAdded < burgsNumber && i < sorted.Length; ++i)
                 {
-                    if (cells.burg[sorted[i]] > 0) continue;
-                    var cell = sorted[i]; double x = cells.r_points[cell][0], y = cells.r_points[cell][1];
+                    if (cells.burg[sorted[i]] > 0)
+                        continue;
+                    var cell = sorted[i];
+                    double x = cells.r_points[cell][0], y = cells.r_points[cell][1];
                     var s = spacing * gauss(1, .3, .2, 2, 2); // randomize to make placement not uniform
-                    if (burgsTree.find(x, y, s) != null) continue;// to close to existing burg
+                    if (burgsTree.find(x, y, s) != null)
+                        continue;// to close to existing burg
                     var burg = (ushort)burgs.Count;
                     var culture = cells.culture[cell];
                     var name = Names.getCulture(culture);
@@ -220,6 +235,7 @@ namespace Janphe.Fantasy.Map
                 }
                 spacing *= .5;
             }
+
             if (manorsInput != 1000 && burgsAdded < desiredNumber)
             {
                 Debug.LogError($"Cannot place all burgs. Requested {desiredNumber}, placed {burgsAdded}");
@@ -232,6 +248,8 @@ namespace Janphe.Fantasy.Map
         // growth algorithm to assign cells to states like we did for cultures
         private void expandStates()
         {
+            //var msg = new List<string>();
+
             var biomesData = map.biomesData;
 
             var cells = pack.cells;
@@ -242,13 +260,15 @@ namespace Janphe.Fantasy.Map
             cells.state = new ushort[cells.i.Length];// cell state
             var queue = new PriorityQueue<Item>((a, b) => a.p.CompareTo(b.p));
             var cost = new Dictionary<int, double>();
-            foreach (var s in states.Where(s => s.i > 0 && !s.removed))
+
+            states.filter(s => s.i > 0 && !s.removed).forEach(s =>
             {
                 cells.state[burgs[s.capital].cell] = s.i;
                 var b = cells.biome[cultures[s.culture].center]; // native biome
                 queue.push(new Item { e = s.center, p = 0, s = s.i, b = b });
                 cost[s.center] = 1;
-            }
+                //msg.push($"{s.i} {s.name}");
+            });
 
             var neutral = cells.i.Length / 5000d * 2000 * neutralInput * statesNeutral; // limit cost for state growth
 
@@ -259,91 +279,124 @@ namespace Janphe.Fantasy.Map
                 var p = next.p;
                 var type = states[s].type;
 
-                foreach (var e in cells.r_neighbor_r[n])
+                //msg.push($"{n} {p} {s} {b}");
+                cells.r_neighbor_r[n].forEach(e =>
                 {
-                    if (cells.state[e] > 0 && e == states[cells.state[e]].center) continue; // do not overwrite capital cells
+                    if (cells.state[e] > 0 && e == states[cells.state[e]].center)
+                        return; // do not overwrite capital cells
 
                     var cultureCost = states[s].culture == cells.culture[e] ? -9 : 700;
                     var biomeCost = getBiomeCost(b, cells.biome[e], type);
                     var heightCost = getHeightCost(pack.features[cells.f[e]], cells.r_height[e], type);
                     var riverCost = getRiverCost(cells.r[e], e, type);
                     var typeCost = getTypeCost(cells.t[e], type);
-                    var tmp = 10 + cultureCost + biomeCost + heightCost + riverCost + typeCost;
-                    var totalCost = rn((decimal)p + (decimal)tmp / (decimal)states[s].expansionism, 6);
+                    var sum = 10 + cultureCost + biomeCost + heightCost + riverCost + typeCost;
+                    var tmp = (decimal)p + (decimal)sum / (decimal)states[s].expansionism;
+                    var totalCost = rn((double)tmp, 6);
+                    //msg.push($"{e} {cultureCost} {biomeCost} {heightCost} {riverCost} {typeCost} {sum} {totalCost}");
+                    //msg.push($"totalCost:{totalCost} neutral:{neutral}");
 
-                    if (totalCost > neutral) return;
+                    if (totalCost > neutral)
+                        return;
 
                     if (!cost.ContainsKey(e) || totalCost < cost[e])
                     {
-                        if (cells.r_height[e] >= 20) cells.state[e] = (ushort)s; // assign state to cell
+                        if (cells.r_height[e] >= 20)
+                            cells.state[e] = (ushort)s; // assign state to cell
                         cost[e] = totalCost;
                         queue.push(new Item { e = e, p = totalCost, s = s, b = b });
+                        //msg.push($"{e} {totalCost} {s} {b}");
                     }
-                }
+                });
             }
 
-            foreach (var b in burgs.Where(b => b.i > 0 && !b.removed))
-            { b.state = cells.state[b.cell]; }// assign state to burgs
+            //Debug.SaveArray("expandStates.txt", msg);
+
+            burgs.filter(b => null != b && 0 != b.i && !b.removed).forEach(b => b.state = cells.state[b.cell]); // assign state to burgs
 
             double getBiomeCost(int b, int biome, string type)
             {
-                if (b == biome) return 10;// tiny penalty for native biome
-                if (type == "Hunting") return biomesData.cost[biome] * 2; // non-native biome penalty for hunters
-                if (type == "Nomadic" && biome > 4 && biome < 10) return biomesData.cost[biome] * 3; // forest biome penalty for nomads
+                if (b == biome)
+                    return 10;// tiny penalty for native biome
+                if (type == "Hunting")
+                    return biomesData.cost[biome] * 2; // non-native biome penalty for hunters
+                if (type == "Nomadic" && biome > 4 && biome < 10)
+                    return biomesData.cost[biome] * 3; // forest biome penalty for nomads
                 return biomesData.cost[biome]; // general non-native biome penalty
             }
             double getHeightCost(Feature f, int h, string type)
             {
-                if (type == "Lake" && f.type == "lake") return 10; // low lake crossing penalty for Lake cultures
-                if (type == "Naval" && h < 20) return 300; // low sea crossing penalty for Navals
-                if (type == "Nomadic" && h < 20) return 10000; // giant sea crossing penalty for Nomads
-                if (h < 20) return 1000; // general sea crossing penalty
-                if (type == "Highland" && h < 62) return 1100; // penalty for highlanders on lowlands
-                if (type == "Highland") return 0; // no penalty for highlanders on highlands
-                if (h >= 67) return 2200; // general mountains crossing penalty
-                if (h >= 44) return 300; // general hills crossing penalty
+                if (type == "Lake" && f.type == "lake")
+                    return 10; // low lake crossing penalty for Lake cultures
+                if (type == "Naval" && h < 20)
+                    return 300; // low sea crossing penalty for Navals
+                if (type == "Nomadic" && h < 20)
+                    return 10000; // giant sea crossing penalty for Nomads
+                if (h < 20)
+                    return 1000; // general sea crossing penalty
+                if (type == "Highland" && h < 62)
+                    return 1100; // penalty for highlanders on lowlands
+                if (type == "Highland")
+                    return 0; // no penalty for highlanders on highlands
+                if (h >= 67)
+                    return 2200; // general mountains crossing penalty
+                if (h >= 44)
+                    return 300; // general hills crossing penalty
                 return 0;
             }
             double getRiverCost(int r, int i, string type)
             {
-                if (type == "River") return r > 0 ? 0 : 100; // penalty for river cultures
-                if (0 == r) return 0; // no penalty for others if there is no river
+                if (type == "River")
+                    return r > 0 ? 0 : 100; // penalty for river cultures
+                if (0 == r)
+                    return 0; // no penalty for others if there is no river
                 return Math.Min(Math.Max(cells.fl[i] / 10d, 20), 100); // river penalty from 20 to 100 based on flux
             }
             double getTypeCost(int t, string type)
             {
-                if (t == 1) return type == "Naval" || type == "Lake" ? 0 : type == "Nomadic" ? 60 : 20; // penalty for coastline
-                if (t == 2) return type == "Naval" || type == "Nomadic" ? 30 : 0; // low penalty for land level 2 for Navals and nomads
-                if (t != -1) return type == "Naval" || type == "Lake" ? 100 : 0;  // penalty for mainland for navals
+                if (t == 1)
+                    return type == "Naval" || type == "Lake" ? 0 : type == "Nomadic" ? 60 : 20; // penalty for coastline
+                if (t == 2)
+                    return type == "Naval" || type == "Nomadic" ? 30 : 0; // low penalty for land level 2 for Navals and nomads
+                if (t != -1)
+                    return type == "Naval" || type == "Lake" ? 100 : 0;  // penalty for mainland for navals
                 return 0;
             }
         }
         private void normalizeStates()
         {
-            var cells = pack.cells; var burgs = pack.burgs;
+            var cells = pack.cells;
+            var burgs = pack.burgs;
 
             foreach (var i in cells.i)
             {
-                if (cells.r_height[i] < 20 || cells.burg[i] > 0) continue; // do not overwrite burgs
-                if (cells.r_neighbor_r[i].some(c => cells.burg[c] > 0 && burgs[cells.burg[c]].capital > 0)) continue; // do not overwrite near capital
+                if (cells.r_height[i] < 20 || cells.burg[i] > 0)
+                    continue; // do not overwrite burgs
+                if (cells.r_neighbor_r[i].some(c => cells.burg[c] > 0 && burgs[cells.burg[c]].capital > 0))
+                    continue; // do not overwrite near capital
 
                 var neibs = cells.r_neighbor_r[i].Where(c => cells.r_height[c] >= 20);
                 var adversaries = neibs.Where(c => cells.state[c] != cells.state[i]).ToArray();
-                if (adversaries.Length < 2) continue;
+                if (adversaries.Length < 2)
+                    continue;
                 var buddies = neibs.Where(c => cells.state[c] == cells.state[i]).ToArray();
-                if (buddies.Length > 2) continue;
-                if (adversaries.Length <= buddies.Length) continue;
+                if (buddies.Length > 2)
+                    continue;
+                if (adversaries.Length <= buddies.Length)
+                    continue;
                 cells.state[i] = cells.state[adversaries[0]];
             }
         }
         // define burg coordinates and define details
         private void specifyBurgs()
         {
-            var cells = pack.cells; var vertices = pack.vertices;
+            var cells = pack.cells;
+            var vertices = pack.vertices;
 
             foreach (var b in pack.burgs)
             {
-                if (null == b || 0 == b.i) continue;
+                if (null == b || 0 == b.i)
+                    continue;
                 var i = b.cell;
 
                 // asign port status: capital with any harbor and towns with good harbors
@@ -352,7 +405,8 @@ namespace Janphe.Fantasy.Map
 
                 // define burg population (keep urbanization at about 10% rate)
                 b.population = rn(Math.Max((cells.s[i] + cells.road[i]) / 8d + b.i / 1000d + i % 100 / 1000d, .1), 3);
-                if (0 != b.capital) b.population = rn(b.population * 1.3, 3); // increase capital population
+                if (0 != b.capital)
+                    b.population = rn(b.population * 1.3, 3); // increase capital population
 
                 if (port)
                 {
@@ -371,8 +425,14 @@ namespace Janphe.Fantasy.Map
                 if (!port && 0 != cells.r[i])
                 {
                     var shift = Math.Min(cells.fl[i] / 150d, 1);
-                    if (0 != (i % 2)) b.x = rn(b.x + shift, 2); else b.x = rn(b.x - shift, 2);
-                    if (0 != (cells.r[i] % 2)) b.y = rn(b.y + shift, 2); else b.y = rn(b.y - shift, 2);
+                    if (0 != (i % 2))
+                        b.x = rn(b.x + shift, 2);
+                    else
+                        b.x = rn(b.x - shift, 2);
+                    if (0 != (cells.r[i] % 2))
+                        b.y = rn(b.y + shift, 2);
+                    else
+                        b.y = rn(b.y - shift, 2);
                 }
             }
         }
@@ -394,7 +454,8 @@ namespace Janphe.Fantasy.Map
 
         private void collectStatistics()
         {
-            var cells = pack.cells; var states = pack.states;
+            var cells = pack.cells;
+            var states = pack.states;
             var neighbors = new HashSet<ushort>[states.Count];
             states.forEach((s, i) =>
             {
@@ -405,7 +466,8 @@ namespace Janphe.Fantasy.Map
 
             foreach (var i in cells.i)
             {
-                if (cells.h[i] < 20) continue;
+                if (cells.h[i] < 20)
+                    continue;
                 var s = cells.state[i];
 
                 // check for neighboring states
@@ -431,10 +493,12 @@ namespace Janphe.Fantasy.Map
             // assin basic color using greedy coloring algorithm
             pack.states.forEach(s =>
             {
-                if (0 == s.i || s.removed) return;
+                if (0 == s.i || s.removed)
+                    return;
                 var neibs = s.neighbors;
                 s.color = colors.find(c => neibs.every(n => pack.states[n].color != c));
-                if (not(s.color)) s.color = getRandomColor();
+                if (not(s.color))
+                    s.color = getRandomColor();
                 colors.push(colors.shift());
             });
 
@@ -444,7 +508,8 @@ namespace Janphe.Fantasy.Map
                 var sameColored = pack.states.filter(s => s.color == c);
                 sameColored.forEach((s, d) =>
                 {
-                    if (0 == d) return;
+                    if (0 == d)
+                        return;
                     s.color = getMixedColor(s.color);
                 });
             });
@@ -452,7 +517,8 @@ namespace Janphe.Fantasy.Map
         // generate Diplomatic Relationships
         private void generateDiplomacy()
         {
-            var cells = pack.cells; var states = pack.states;
+            var cells = pack.cells;
+            var states = pack.states;
             var chronicle = pack.chronicle = new List<string[]>();
             var valid = states.filter(s => s.i != 0 && !s.removed);
 
@@ -484,13 +550,15 @@ namespace Janphe.Fantasy.Map
 
             // clear all relationships
             valid.forEach(s => s.diplomacy = new string[states.Count].fill("x"));
-            if (valid.Count() < 2) return; // no states to renerate relations with
+            if (valid.Count() < 2)
+                return; // no states to renerate relations with
             var areaMean = D3.mean(valid.map(s => (int)s.area)); // avarage state area
 
             // generic relations
             for (var f = 1; f < states.Count; f++)
             {
-                if (states[f].removed) continue;
+                if (states[f].removed)
+                    continue;
 
                 if (states[f].diplomacy.includes("Vassal"))
                 {
@@ -499,13 +567,17 @@ namespace Janphe.Fantasy.Map
 
                     for (var i = 1; i < states.Count; i++)
                     {
-                        if (i == f || i == suzerain) continue;
+                        if (i == f || i == suzerain)
+                            continue;
                         states[f].diplomacy[i] = states[suzerain].diplomacy[i];
-                        if (states[suzerain].diplomacy[i] == "Suzerain") states[f].diplomacy[i] = "Ally";
+                        if (states[suzerain].diplomacy[i] == "Suzerain")
+                            states[f].diplomacy[i] = "Ally";
                         for (var e = 1; e < states.Count; e++)
                         {
-                            if (e == f || e == suzerain) continue;
-                            if (states[e].diplomacy[suzerain] == "Suzerain" || states[e].diplomacy[suzerain] == "Vassal") continue;
+                            if (e == f || e == suzerain)
+                                continue;
+                            if (states[e].diplomacy[suzerain] == "Suzerain" || states[e].diplomacy[suzerain] == "Vassal")
+                                continue;
                             states[e].diplomacy[f] = states[e].diplomacy[suzerain];
                         }
                     }
@@ -514,7 +586,8 @@ namespace Janphe.Fantasy.Map
 
                 for (var t = f + 1; t < states.Count; t++)
                 {
-                    if (states[t].removed) continue;
+                    if (states[t].removed)
+                        continue;
 
                     if (states[t].diplomacy.includes("Vassal"))
                     {
@@ -533,7 +606,8 @@ namespace Janphe.Fantasy.Map
                         neibOfNeib ? rw(neibsOfNeibs) : rw(far);
 
                     // add Vassal
-                    if (neib && P(.8) && states[f].area > areaMean && states[t].area < areaMean && states[f].area / states[t].area > 2) status = "Vassal";
+                    if (neib && P(.8) && states[f].area > areaMean && states[t].area < areaMean && states[f].area / states[t].area > 2)
+                        status = "Vassal";
                     states[f].diplomacy[t] = status == "Vassal" ? "Suzerain" : status;
                     states[t].diplomacy[f] = status;
                 }
@@ -543,10 +617,14 @@ namespace Janphe.Fantasy.Map
             for (var attacker = 1; attacker < states.Count; attacker++)
             {
                 var ad = states[attacker].diplomacy; // attacker relations;
-                if (states[attacker].removed) continue;
-                if (!ad.includes("Rival")) continue; // no rivals to attack
-                if (ad.includes("Vassal")) continue; // not independent
-                if (ad.includes("Enemy")) continue; // already at war
+                if (states[attacker].removed)
+                    continue;
+                if (!ad.includes("Rival"))
+                    continue; // no rivals to attack
+                if (ad.includes("Vassal"))
+                    continue; // not independent
+                if (ad.includes("Enemy"))
+                    continue; // already at war
 
                 // random independent rival
                 var defender = ra(
@@ -554,7 +632,8 @@ namespace Janphe.Fantasy.Map
                     .filter(d => d != 0).ToArray()
                     );
                 double ap = states[attacker].area * states[attacker].expansionism, dp = states[defender].area * states[defender].expansionism;
-                if (ap < dp * gauss(1.6, .8, 0, 10, 2)) continue; // defender is too strong
+                if (ap < dp * gauss(1.6, .8, 0, 10, 2))
+                    continue; // defender is too strong
                 string an = states[attacker].name, dn = states[defender].name; // names
                 var attackers = new List<int> { attacker };
                 var defenders = new List<int> { defender }; // attackers and defenders array
@@ -592,7 +671,8 @@ namespace Janphe.Fantasy.Map
                 // defender allies join
                 dd.forEach((r, d) =>
                 {
-                    if (r != "Ally" || states[d].diplomacy.includes("Vassal")) return;
+                    if (r != "Ally" || states[d].diplomacy.includes("Vassal"))
+                        return;
                     if (states[d].diplomacy[attacker] != "Rival" && ap / dp > (2 * gauss(1.6, .8, 0, 10, 2)))
                     {
                         var reason = states[d].diplomacy.includes("Enemy") ? $"Being already at war," : $"Frightened by {an},";
@@ -616,7 +696,8 @@ namespace Janphe.Fantasy.Map
                 // attacker allies join if the defender is their rival or joined power > defenders power and defender is not an ally
                 ad.forEach((r, d) =>
                 {
-                    if (r != "Ally" || states[d].diplomacy.includes("Vassal") || defenders.includes(d)) return;
+                    if (r != "Ally" || states[d].diplomacy.includes("Vassal") || defenders.includes(d))
+                        return;
 
                     var name = states[d].name;
                     if (states[d].diplomacy[defender] != "Rival" && (P(.2) || ap <= dp * 1.2))
@@ -649,7 +730,8 @@ namespace Janphe.Fantasy.Map
         public void defineStateForms(List<int> list = null)
         {
             var states = pack.states.filter(s => 0 != s.i && !s.removed);
-            if (states.Count() < 1) return;
+            if (states.Count() < 1)
+                return;
 
             var generic = JObject.Parse(@"{ Monarchy:25, Republic: 2, Union: 1}").dict();
             var naval = JObject.Parse(@"{ Monarchy:25, Republic:8, Union:3 }").dict();
@@ -661,7 +743,8 @@ namespace Janphe.Fantasy.Map
             var expTiers = pack.states.map(s =>
             {
                 var tier = Math.Min((int)Math.Floor(s.area / median * 2.6), 4);
-                if (tier == 4 && s.area < empireMin) tier = 3;
+                if (tier == 4 && s.area < empireMin)
+                    tier = 3;
                 return tier;
             }).ToArray();
 
@@ -671,7 +754,8 @@ namespace Janphe.Fantasy.Map
 
             foreach (var s in states)
             {
-                if (null != list && !list.includes(s.i)) continue;
+                if (null != list && !list.includes(s.i))
+                    continue;
 
                 // some nomadic states
                 if (s.type == "Nomadic" && P(.8))
@@ -699,20 +783,32 @@ namespace Janphe.Fantasy.Map
                     // Default name depends on exponent tier, some culture bases have special names for tiers
                     if (s.diplomacy != null)
                     {
-                        if (form == "Duchy" && s.neighbors.Length > 1 && rand(6) < s.neighbors.Length && s.diplomacy.includes("Vassal")) return "Marches"; // some vassal dutchies on borderland
-                        if (P(.3) && s.diplomacy.includes("Vassal")) return "Protectorate"; // some vassals
+                        if (form == "Duchy" && s.neighbors.Length > 1 && rand(6) < s.neighbors.Length && s.diplomacy.includes("Vassal"))
+                            return "Marches"; // some vassal dutchies on borderland
+                        if (P(.3) && s.diplomacy.includes("Vassal"))
+                            return "Protectorate"; // some vassals
                     }
 
-                    if (@base == 16 && (form == "Empire" || form == "Kingdom")) return "Sultanate"; // Turkic
-                    if (@base == 5 && (form == "Empire" || form == "Kingdom")) return "Tsardom"; // Ruthenian
-                    if (@base == 31 && (form == "Empire" || form == "Kingdom")) return "Khaganate"; // Mongolian
-                    if (@base == 12 && (form == "Kingdom" || form == "Grand Duchy")) return "Shogunate"; // Japanese
-                    if (new int[] { 18, 17 }.includes(@base) && form == "Empire") return "Caliphate"; // Arabic, Berber
-                    if (@base == 18 && (form == "Grand Duchy" || form == "Duchy")) return "Emirate"; // Arabic
-                    if (@base == 7 && (form == "Grand Duchy" || form == "Duchy")) return "Despotate"; // Greek
-                    if (@base == 31 && (form == "Grand Duchy" || form == "Duchy")) return "Ulus"; // Mongolian
-                    if (@base == 16 && (form == "Grand Duchy" || form == "Duchy")) return "Beylik"; // Turkic
-                    if (@base == 24 && (form == "Grand Duchy" || form == "Duchy")) return "Satrapy"; // Iranian
+                    if (@base == 16 && (form == "Empire" || form == "Kingdom"))
+                        return "Sultanate"; // Turkic
+                    if (@base == 5 && (form == "Empire" || form == "Kingdom"))
+                        return "Tsardom"; // Ruthenian
+                    if (@base == 31 && (form == "Empire" || form == "Kingdom"))
+                        return "Khaganate"; // Mongolian
+                    if (@base == 12 && (form == "Kingdom" || form == "Grand Duchy"))
+                        return "Shogunate"; // Japanese
+                    if (new int[] { 18, 17 }.includes(@base) && form == "Empire")
+                        return "Caliphate"; // Arabic, Berber
+                    if (@base == 18 && (form == "Grand Duchy" || form == "Duchy"))
+                        return "Emirate"; // Arabic
+                    if (@base == 7 && (form == "Grand Duchy" || form == "Duchy"))
+                        return "Despotate"; // Greek
+                    if (@base == 31 && (form == "Grand Duchy" || form == "Duchy"))
+                        return "Ulus"; // Mongolian
+                    if (@base == 16 && (form == "Grand Duchy" || form == "Duchy"))
+                        return "Beylik"; // Turkic
+                    if (@base == 24 && (form == "Grand Duchy" || form == "Duchy"))
+                        return "Satrapy"; // Iranian
                     return form;
                 }
 
@@ -726,7 +822,8 @@ namespace Janphe.Fantasy.Map
                             s.name = pack.burgs[s.capital].name;
                             return "Free City";
                         }
-                        if (P(.3)) return "City-state";
+                        if (P(.3))
+                            return "City-state";
                     }
                     return rw(republic);
                 }
@@ -737,10 +834,14 @@ namespace Janphe.Fantasy.Map
                 if (s.form == "Theocracy")//神权政治, 神权国
                 {
                     // default name is "Theocracy", some culture bases have special names
-                    if (new int[] { 0, 1, 2, 3, 4, 6, 8, 9, 13, 15, 20 }.includes(@base)) return "Diocese"; // Euporean
-                    if (new int[] { 7, 5 }.includes(@base)) return "Eparchy"; // Greek, Ruthenian
-                    if (new int[] { 21, 16 }.includes(@base)) return "Imamah"; // Nigerian, Turkish
-                    if (new int[] { 18, 17, 28 }.includes(@base)) return "Caliphate"; // Arabic, Berber, Swahili
+                    if (new int[] { 0, 1, 2, 3, 4, 6, 8, 9, 13, 15, 20 }.includes(@base))
+                        return "Diocese"; // Euporean
+                    if (new int[] { 7, 5 }.includes(@base))
+                        return "Eparchy"; // Greek, Ruthenian
+                    if (new int[] { 21, 16 }.includes(@base))
+                        return "Imamah"; // Nigerian, Turkish
+                    if (new int[] { 18, 17, 28 }.includes(@base))
+                        return "Caliphate"; // Arabic, Berber, Swahili
                     return "Theocracy";
                 }
                 return "";
@@ -749,8 +850,10 @@ namespace Janphe.Fantasy.Map
 
         private string getFullName(State s)
         {
-            if (not(s.formName)) return s.name;
-            if (not(s.name) && @is(s.formName)) return "The " + s.formName;
+            if (not(s.formName))
+                return s.name;
+            if (not(s.name) && @is(s.formName))
+                return "The " + s.formName;
             // state forms requiring Adjective + Name, all other forms use scheme Form + Of + Name
             var adj = new string[] { "Empire", "Sultanate", "Khaganate", "Shogunate", "Caliphate", "Despotate", "Theocracy", "Oligarchy", "Union", "Confederation", "Trade Company", "League", "Tetrarchy", "Triumvirate", "Diarchy", "Horde" };
             return adj.includes(s.formName) ? getAdjective(s.name) + " " + s.formName : s.formName + " of " + s.name;
@@ -761,11 +864,14 @@ namespace Janphe.Fantasy.Map
             var localSeed = regenerate ? (int)Math.Floor(Random.NextDouble() * 1e9) : map.Options.MapSeed;
             Random.Seed(localSeed);
 
-            var cells = pack.cells; var states = pack.states; var burgs = pack.burgs;
+            var cells = pack.cells;
+            var states = pack.states;
+            var burgs = pack.burgs;
             var provinces = pack.provinces = new List<Province>() { null };
             cells.province = new ushort[cells.i.Length]; // cell state
             var percentage = map.Options.ProvincesInput;
-            if (states.Count < 2 || 0 == percentage) { states.forEach(s => s.provinces = new List<ushort>()); return; } // no provinces
+            if (states.Count < 2 || 0 == percentage)
+            { states.forEach(s => s.provinces = new List<ushort>()); return; } // no provinces
             var max = percentage == 100 ? 1000 : gauss(20, 5, 5, 100) * percentage.pow(.5); // max growth
 
             var forms = JObject.Parse(@"{
@@ -781,9 +887,11 @@ namespace Janphe.Fantasy.Map
             states.forEach(s =>
             {
                 s.provinces = new List<ushort>();
-                if (0 == s.i || s.removed) return;
+                if (0 == s.i || s.removed)
+                    return;
                 var stateBurgs = burgs.filter(b => b.state == s.i && !b.removed).sort((a, b) => (b.population * gauss(1, .2, .5, 1.5, 3)).CompareTo(a.population)).ToArray();
-                if (stateBurgs.Length < 2) return; // at least 2 provinces are required
+                if (stateBurgs.Length < 2)
+                    return; // at least 2 provinces are required
                 var provincesNumber = Math.Max(Math.Ceiling(stateBurgs.Length * percentage / 100d), 2);
                 var form = forms[s.form].dict<int>();
 
@@ -818,7 +926,8 @@ namespace Janphe.Fantasy.Map
             var cost = new Dictionary<int, double>();
             provinces.forEach(p =>
             {
-                if (0 == p.i || p.removed) return;
+                if (0 == p.i || p.removed)
+                    return;
                 cells.province[p.center] = (ushort)p.i;
                 queue.push(new Item { e = p.center, p = 0, province = p.i, state = p.state });
                 cost[p.center] = 1;
@@ -827,19 +936,25 @@ namespace Janphe.Fantasy.Map
 
             while (queue.Count > 0)
             {
-                var next = queue.pop(); int n = next.e, province = next.province, state = next.state; var p = next.p;
+                var next = queue.pop();
+                int n = next.e, province = next.province, state = next.state;
+                var p = next.p;
                 cells.c[n].forEach(e =>
                 {
                     var land = cells.h[e] >= 20;
-                    if (!land && 0 == cells.t[e]) return; // cannot pass deep ocean
-                    if (land && cells.state[e] != state) return;
+                    if (!land && 0 == cells.t[e])
+                        return; // cannot pass deep ocean
+                    if (land && cells.state[e] != state)
+                        return;
                     var evevation = cells.h[e] >= 70 ? 100 : cells.h[e] >= 50 ? 30 : cells.h[e] >= 20 ? 10 : 100;
                     var totalCost = p + evevation;
 
-                    if (totalCost > max) return;
+                    if (totalCost > max)
+                        return;
                     if (!cost.ContainsKey(e) || totalCost < cost[e])
                     {
-                        if (land) cells.province[e] = (ushort)province; // assign province to a cell
+                        if (land)
+                            cells.province[e] = (ushort)province; // assign province to a cell
                         cost[e] = totalCost;
                         queue.push(new Item { e = e, p = totalCost, province = province, state = state });
                     }
@@ -849,15 +964,19 @@ namespace Janphe.Fantasy.Map
             // justify provinces shapes a bit
             foreach (var i in cells.i)
             {
-                if (0 != cells.burg[i]) continue;// do not overwrite burgs
+                if (0 != cells.burg[i])
+                    continue;// do not overwrite burgs
                 var neibs = cells.c[i].filter(c => cells.state[c] == cells.state[i]).map(c => cells.province[c]);
                 var adversaries = neibs.filter(c => c != cells.province[i]).ToArray();
-                if (adversaries.Length < 2) continue;
+                if (adversaries.Length < 2)
+                    continue;
                 var buddies = neibs.filter(c => c == cells.province[i]).Count();
-                if (buddies > 2) continue;
+                if (buddies > 2)
+                    continue;
                 var competitors = adversaries.map(p => adversaries.reduce((s, v) => v == p ? ++s : s, (ushort)0)).ToArray();
                 var maxc = D3.max(competitors);
-                if (buddies >= maxc) continue;
+                if (buddies >= maxc)
+                    continue;
                 cells.province[i] = adversaries[competitors.indexOf(maxc)];
             }
 
@@ -865,7 +984,8 @@ namespace Janphe.Fantasy.Map
             var noProvince = cells.i.filter(i => 0 != cells.state[i] && 0 == cells.province[i]); // cells without province assigned
             states.forEach(s =>
             {
-                if (0 == s.provinces.Count) return;
+                if (0 == s.provinces.Count)
+                    return;
                 var stateNoProvince = noProvince.filter(i => cells.state[i] == s.i && 0 == cells.province[i]);
                 while (stateNoProvince.Count() > 0)
                 {
@@ -877,24 +997,31 @@ namespace Janphe.Fantasy.Map
                     cells.province[center] = province;
 
                     // expand province
-                    cost = new Dictionary<int, double>(); cost[center] = 1;
+                    cost = new Dictionary<int, double>();
+                    cost[center] = 1;
                     queue.push(new Item { e = center, p = 0 });
                     while (queue.Count > 0)
                     {
-                        var next = queue.pop(); var n = next.e; var p = next.p;
+                        var next = queue.pop();
+                        var n = next.e;
+                        var p = next.p;
 
                         cells.c[n].forEach(e =>
                         {
-                            if (0 != cells.province[e]) return;
+                            if (0 != cells.province[e])
+                                return;
                             var land = cells.h[e] >= 20;
-                            if (0 != cells.state[e] && cells.state[e] != s.i) return;
+                            if (0 != cells.state[e] && cells.state[e] != s.i)
+                                return;
                             var ter = land ? cells.state[e] == s.i ? 3 : 20 : 0 != cells.t[e] ? 10 : 30;
                             var totalCost = p + ter;
 
-                            if (totalCost > max) return;
+                            if (totalCost > max)
+                                return;
                             if (!cost.ContainsKey(e) || totalCost < cost[e])
                             {
-                                if (land && cells.state[e] == s.i) cells.province[e] = province; // assign province to a cell
+                                if (land && cells.state[e] == s.i)
+                                    cells.province[e] = province; // assign province to a cell
                                 cost[e] = totalCost;
                                 queue.push(new Item { e = e, p = totalCost });
                             }
@@ -928,15 +1055,20 @@ namespace Janphe.Fantasy.Map
                     // check if there is a land way within the same state between two cells
                     bool isPassable(int from, int to)
                     {
-                        if (cells.f[from] != cells.f[to]) return false; // on different islands
-                        var lstTmp = new List<int>() { from }; var used = new byte[cells.i.Length]; var state = cells.state[from];
+                        if (cells.f[from] != cells.f[to])
+                            return false; // on different islands
+                        var lstTmp = new List<int>() { from };
+                        var used = new byte[cells.i.Length];
+                        var state = cells.state[from];
                         while (lstTmp.Count > 0)
                         {
                             var current = lstTmp.pop();
-                            if (current == to) return true; // way is found
+                            if (current == to)
+                                return true; // way is found
                             cells.c[current].forEach(cTmp =>
                             {
-                                if (0 != used[cTmp] || cells.h[cTmp] < 20 || cells.state[cTmp] != state) return;
+                                if (0 != used[cTmp] || cells.h[cTmp] < 20 || cells.state[cTmp] != state)
+                                    return;
                                 lstTmp.push(cTmp);
                                 used[cTmp] = 1;
                             });
@@ -954,18 +1086,245 @@ namespace Janphe.Fantasy.Map
         {
         }
 
-        public void drawStates()
+        public void drawStates(SKCanvas canvas)
         {
-            var cells = pack.cells; var vertices = pack.vertices; var states = pack.states; var n = cells.i.Length;
-            var used = new byte[cells.i.Length];
-            //var vArray = new Array(states.length); // store vertices array
-            //var body = new Array(states.length).fill(""); // store path around each state
-            //var gap = new Array(states.length).fill(""); // store path along water for each state to fill the gaps
+            var cells = pack.cells;
+            var vertices = pack.vertices;
+            var states = pack.states;
+            var n = cells.i.Length;
+
+            var used = new BitArray(n);
+            var vArray = new List<IEnumerable<double[]>>[states.Count]; // store vertices array
+            var body = new string[states.Count].fill(""); // store path around each state
+            var gap = new string[states.Count].fill(""); // store path along water for each state to fill the gaps
+
+            foreach (var i in cells.i)
+            {
+                if (0 == cells.state[i] || used[i])
+                    continue;
+
+                var s = cells.state[i];
+                var onborder = cells.c[i].filter(ci => cells.state[ci] != s);
+                if (0 == onborder.Count())
+                    continue;
+                var borderWith = cells.c[i].map(ci => cells.state[ci]).find(rc => rc != s);
+                var vertex = cells.v[i].find(v => vertices.c[v].some(cv => cells.state[cv] == borderWith));
+                var chain = connectVertices(vertex, s, borderWith);
+                if (chain.Count < 3)
+                    continue;
+
+                var points = chain.map(v => vertices.p[v[0]]);
+
+                if (vArray[s] == null)
+                    vArray[s] = new List<IEnumerable<double[]>>();
+                vArray[s].push(points);
+
+                body[s] += "M" + points.map(p => p.join(",")).join("L");
+                gap[s] += "M" + vertices.p[chain[0][0]].join(",") + chain.reduce((str, v, vi, d) =>
+                  0 == vi ? str :
+                  0 == v[2] ? str + "L" + vertices.p[v[0]].join(",") :
+                  null != d[vi + 1] && 0 == d[vi + 1][2] ? str + "M" + vertices.p[v[0]].join(",") : str
+                , "");
+            }
+
+            // find state visual center
+            vArray.forEach((ar, i) =>
+            {
+                if (ar == null)
+                    return;
+                var sorted = ar.sort((a, b) => b.Count() - a.Count()); // sort by points number
+                var polygon = sorted.map(p => p.ToArray()).First();//取第一个最大区域
+                states[i].pole = polygon.polylabel(1.0); // pole of inaccessibility
+            });
+
+            var paint = new SKPaint() { IsAntialias = true };
+            paint.Style = SKPaintStyle.Fill;
+            body.forEach((p, i) =>
+            {
+                if (p.Length <= 10)
+                    return;
+
+                paint.Color = states[i].color.ToColor().Opacity(0.4f).SK();
+                var path = SKPath.ParseSvgPathData(p);
+                if (path != null)
+                    canvas.DrawPath(path, paint);
+                //Debug.Log($"{i} {states[i].name} {states[i].color} {p}");
+            });
+
+            List<int[]> connectVertices(int start, ushort t, int state)
+            {
+                var chain = new List<int[]>();
+
+                var land = vertices.c[start].some(c => cells.h[c] >= 20 && cells.state[c] != t);
+                void check(int i)
+                { state = cells.state[i]; land = cells.h[i] >= 20; }
+
+                for (int i = 0, current = start; i == 0 || current != start && i < 20000; i++)
+                {
+                    var prev = chain.Count > 0 ? chain.Last()[0] : -1;
+                    chain.push(new int[] { current, state, land ? 1 : 0 }); // add current vertex to sequence
+                    var c = vertices.c[current]; // cells adjacent to vertex
+                    c.filter(ci => cells.state[ci] == t).forEach(ci => used[ci] = true);
+                    var c0 = c[0] >= n || cells.state[c[0]] != t;
+                    var c1 = c[1] >= n || cells.state[c[1]] != t;
+                    var c2 = c[2] >= n || cells.state[c[2]] != t;
+                    var v = vertices.v[current]; // neighboring vertices
+                    if (v[0] != prev && c0 != c1)
+                    {
+                        current = v[0];
+                        check(c0 ? c[0] : c[1]);
+                    }
+                    else if (v[1] != prev && c1 != c2)
+                    {
+                        current = v[1];
+                        check(c1 ? c[1] : c[2]);
+                    }
+                    else if (v[2] != prev && c0 != c2)
+                    {
+                        current = v[2];
+                        check(c2 ? c[2] : c[0]);
+                    }
+                    if (current == chain[chain.Count - 1][0])
+                    { Debug.Log("Next vertex is not found"); break; }
+                }
+                chain.push(new int[] { start, state, land ? 1 : 0 }); // add starting vertex to sequence to close the path
+                return chain;
+            }
+        }
+        public void drawStateLabels(SKCanvas canvas)
+        {
+            var cells = pack.cells;
+            var states = pack.states;
+            var features = pack.features;
+
+            var paths = new Dictionary<int, IEnumerable<double[]>>();
+#if false
+            foreach (var s in states)
+            {
+                if (0 == s.i || s.removed)
+                    continue;
+
+                var used = new Dictionary<int, bool>();
+                var visualCenter = pack.findCell(s.pole[0], s.pole[1]);
+                var start_ = cells.state[visualCenter] == s.i ? visualCenter : s.center;
+                var hull = getHull(start_, s.i, s.cells / 10);
+                var points = hull.map(v => pack.vertices.p[v]).ToList();
+                var delauny = PointsSelection.fromPoints(points);
+                var voronoi = new Voronoi()
+                {
+                    s_triangles_r = delauny.triangles,
+                    s_halfedges_s = delauny.halfedges,
+                };
+                var voronoiCell = new VoronoiCells(voronoi, points, points.Count);
+                var chain_ = connectCenters(voronoiCell.vertices, s.pole[1]);
+                var relaxed = chain_.map(i => voronoiCell.vertices.p[i]).filter((p, i) => i % 15 == 0 || i + 1 == chain_.Count);
+                paths[s.i] = relaxed;
+
+                HashSet<int> getHull(int start, ushort state, int maxLake)
+                {
+                    var queue = new List<int>() { start };
+                    var _hull = new HashSet<int>();
+
+                    while (queue.Count > 0)
+                    {
+                        var q = queue.pop();
+                        var nQ = cells.c[q].filter(c => cells.state[c] == state);
+
+                        cells.c[q].forEach((c, d) =>
+                        {
+
+                            var passableLake = features[cells.f[c]].type == "lake" && features[cells.f[c]].cells < maxLake;
+                            if (cells.b[c] || (cells.state[c] != state && !passableLake))
+                            { _hull.Add(cells.v[q][d]); return; }
+
+                            var nC = cells.c[c].filter(n => cells.state[n] == state);
+                            var intersected = intersect(nQ, nC).Count();
+                            if (_hull.Count > 20 && 0 == intersected && !passableLake)
+                            { _hull.Add(cells.v[q][d]); return; }
+
+                            if (used.ContainsKey(c) && used[c])
+                                return;
+                            used[c] = true;
+                            queue.push(c);
+                        });
+                    }
+                    return _hull;
+                }
+
+                List<int> connectCenters(Vertices c, double y)
+                {
+                    // check if vertex is inside the area
+                    var inside = c.p.map(p =>
+                    {
+                        if (p[0] <= 0 || p[1] <= 0 || p[0] >= graphWidth || p[1] >= graphHeight)
+                            return false; // out of the screen
+                        return used[pack.findCell(p[0], p[1])];
+                    }).ToArray();
+
+                    var pointsInside = D3.range(c.p.Length).filter(i => inside[i]).ToArray();
+                    if (0 == pointsInside.Length)
+                        return new List<int>() { 0 };
+
+                    var h = c.p.Length < 200 ? 0 : c.p.Length < 600 ? .5 : 1; // power of horyzontality shift
+                    var end = pointsInside[D3.scan(pointsInside, (a, b) =>
+                        (int)((c.p[a][0] - c.p[b][0]) + (Math.Abs(c.p[a][1] - y) - Math.Abs(c.p[b][1] - y)) * h)
+                    )]; // left point
+                    var start = pointsInside[D3.scan(pointsInside, (a, b) =>
+                        (int)((c.p[b][0] - c.p[a][0]) - (Math.Abs(c.p[b][1] - y) - Math.Abs(c.p[a][1] - y)) * h)
+                    )]; // right point
+
+                    //debug.append("line").attr("x1", c.p[start][0]).attr("y1", c.p[start][1]).attr("x2", c.p[end][0]).attr("y2", c.p[end][1]).attr("stroke", "#00dd00");
+
+                    // connect leftmost and rightmost points with shortest path
+                    var queue = new PriorityQueue<Item>((a, b) => a.p.CompareTo(b.p));
+                    var cost = new Dictionary<int, double>();
+                    var from = new Dictionary<int, int>();
+                    queue.push(new Item { e = start, p = 0 });
+
+                    while (queue.Count > 0)
+                    {
+                        var next = queue.pop();
+                        var n = next.e;
+                        var p = next.p;
+                        if (n == end)
+                            break;
+
+                        foreach (var v in c.v[n])
+                        {
+                            if (v == -1)
+                                continue;
+                            var totalCost = p + (inside[v] ? 1 : 100);
+                            if ((from.ContainsKey(v) && from[v] > 0) || totalCost >= cost[v])
+                                continue;
+                            cost[v] = totalCost;
+                            from[v] = n;
+                            queue.push(new Item { e = v, p = totalCost });
+                        }
+                    }
+
+                    // restore path
+                    var chain = new List<int>() { end };
+                    var cur = end;
+                    while (cur != start)
+                    {
+                        cur = from[cur];
+                        if (inside[cur])
+                            chain.push(cur);
+                    }
+                    return chain;
+                }
+            }
+#endif
+
+            var paint = new SKPaint() { IsAntialias = true };
+            paint.Color = SKColors.Red;
+            states.ForEach(s =>
+            {
+                if (s == null || s.pole == null)
+                    return;
+                canvas.DrawText(s.name, (float)s.pole[0], (float)s.pole[1], paint);
+            });
         }
         public void drawBorders() { }
-        public void drawStateLabels()
-        {
-
-        }
     }
 }

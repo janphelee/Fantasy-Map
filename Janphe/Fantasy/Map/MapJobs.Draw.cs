@@ -29,7 +29,8 @@ namespace Janphe.Fantasy.Map
             }
 
             var canvas = _surface.Canvas;
-            canvas.Clear(new SKColor(128, 128, 128));
+            //canvas.Clear(new SKColor(128, 128, 128, 0));
+            canvas.Clear();
             canvas.ResetMatrix();
 
             canvas.Scale(_sx, _sy);
@@ -56,8 +57,57 @@ namespace Janphe.Fantasy.Map
             if (isLayersOn(Layers.opt_layers_precipitation))
                 map2Precipitation.draw(canvas);
 
+            if (isLayersOn(Layers.opt_layers_population))
+                drawPopulation(canvas);
+
+            if (isLayersOn(Layers.opt_layers_cultures))
+                map5Cultures.draw(canvas, linePath);
+
+            if (isLayersOn(Layers.opt_layers_religions))
+                map6Religions.draw(canvas, linePath);
+
+            if (isLayersOn(Layers.opt_layers_states))
+            {
+                map6BurgsAndStates.drawStates(canvas);
+                map6BurgsAndStates.drawStateLabels(canvas);
+            }
+
+            if (isLayersOn(Layers.opt_layers_relief))
+                drawReliefIcons(canvas);
+
             if (isLayersOn(Layers.opt_layers_cells))
                 drawCells(canvas);
+        }
+
+        private float urbanization = 1;
+        private void drawPopulation(SKCanvas canvas)
+        {
+            var cells = pack.cells;
+            var burgs = pack.burgs;
+            var p = cells.p;
+
+            var paint = new SKPaint();
+            paint.StrokeWidth = 1.6f;
+            paint.StrokeCap = SKStrokeCap.Butt;
+
+            paint.Color = SKColors.Blue;
+            var rural = cells.i.filter(i => cells.pop[i] > 0);
+            rural.forEach(i =>
+            {
+                var x = (float)p[i][0];
+                var y = (float)p[i][1];
+                canvas.DrawLine(x, y, x, y - cells.pop[i] / 8, paint);
+            });
+
+            paint.Color = SKColors.Red;
+            var urban = burgs.filter(b => b != null && 0 != b.i && !b.removed);
+            urban.forEach(b =>
+            {
+                var x = (float)b.x;
+                var y = (float)b.y;
+                var y2 = y - (float)b.population / 8 * urbanization;
+                canvas.DrawLine(x, y, x, y2, paint);
+            });
         }
 
         private void drawLandmass(SKCanvas canvas)

@@ -43,6 +43,7 @@ namespace Janphe.Fantasy.Map
             public string form, formName, fullName;
 
             public List<ushort> provinces;
+            public double[] pole;
         }
         public class Religion
         {
@@ -186,6 +187,12 @@ namespace Janphe.Fantasy.Map
         {
             var n = Math.Floor(Math.Min(y / spacing, cellsY - 1)) * cellsX + Math.Floor(Math.Min(x / spacing, cellsX - 1));
             return (int)n;
+        }
+
+        public int findCell(double x, double y, double radius = double.PositiveInfinity)
+        {
+            var found = cells.q.find(x, y, radius);
+            return null != found ? found.v : -1;
         }
 
         public double[][] getGridPolygon(int i)

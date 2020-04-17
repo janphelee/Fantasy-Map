@@ -59,13 +59,45 @@ namespace Janphe
 
         public static readonly Func<double, Color> Rainbow = (t) =>
         {
-            if (t < 0 || t > 1) t -= Math.Floor(t);
+            if (t < 0 || t > 1)
+                t -= Math.Floor(t);
             var ts = Math.Abs(t - 0.5);
             var h = 360 * t - 100;
             var s = 1.5 - 1.5 * ts;
             var l = 0.8 - 0.9 * ts;
-            return Utils.HSL2RGB((float)h, (float)s, (float)l);
+            var c = Cubehelix(h, s, l);
+            //rainbow 0 rgb(110, 64, 170) -100 0.75 0.35
+            //Debug.Log($"rainbow { t} rgb({c.r8},{c.g8},{c.b8}) {h} {s} {l}");
+            return c;
         };
 
+        const double deg2rad = Math.PI / 180;
+        const double rad2deg = 180 / Math.PI;
+        const double A = -0.14861,
+                     B = +1.78277,
+                     C = -0.29227,
+                     D = -0.90649,
+                     E = +1.97294;
+
+        public static Color Cubehelix(double h, double s, double l, double opacity = 1)
+        {
+            var a = s * l * (1 - l);
+            var b = (h + 120) * deg2rad;
+            var cosh = Math.Cos(b);
+            var sinh = Math.Sin(b);
+
+            return Rgb(
+                255 * (l + a * (A * cosh + B * sinh)),
+                255 * (l + a * (C * cosh + D * sinh)),
+                255 * (l + a * (E * cosh)),
+                opacity
+                );
+        }
+
+        public static Color Rgb(double r, double g, double b, double a)
+        {
+            Func<double, float> clamp = t => (float)(Math.Max(0, Math.Min(255, Math.Round(t))) / 255);
+            return new Color(clamp(r), clamp(g), clamp(b), (float)a);
+        }
     }
 }

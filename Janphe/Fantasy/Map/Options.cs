@@ -34,6 +34,7 @@ namespace Janphe.Fantasy.Map
         public float SizeVariety { get; set; }//[0, 10]
         public float GrowthRate { get; set; }//[0.1, 2]
         public int TownsNumber { get; set; } = -1;//[0, 999] auto
+        public int RegionsNumber { get; set; } = 0;
         public int ReligionsNumber { get; set; } = 0;//[0, 50]
 
         public int PrecipitationInput { get; set; }//[0, 500]
@@ -47,6 +48,9 @@ namespace Janphe.Fantasy.Map
         public float TemperaturePoleInput { get; set; }
         public float HeightExponentInput { get; set; }
 
+        public string terrainSet { get; set; } = "simple";
+        public float terrainDensity { get; set; } = 0.4f;
+        public float terrainSize { get; set; } = 1f;
 
     }
 }

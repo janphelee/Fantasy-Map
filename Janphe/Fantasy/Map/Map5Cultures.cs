@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using SkiaSharp;
 
 namespace Janphe.Fantasy.Map
 {
@@ -61,6 +63,8 @@ namespace Janphe.Fantasy.Map
             //var count = Math.Min(culturesInput, +culturesSet.selectedOptions[0].dataset.max);
             var count = Math.Min(culturesInput, culturesSet_dataMax);
 
+            Debug.Log($"Map5Cultures.generate {culturesInput} {culturesSet} {culturesSet_dataMax} {powerInput} {neutralInput}");
+
             var populated = cells.i.Where(i => cells.s[i] > 0).ToArray(); // populated cells
             if (populated.Length < count * 25)
             {
@@ -80,7 +84,7 @@ namespace Janphe.Fantasy.Map
             }
 
             //var msg = new List<string>();
-            //msg.Add(culturesSet);
+
             var cultures = getRandomCultures(count);
             var centers = D3.quadtree();
             var colors = Utils.getColors(count);
@@ -104,9 +108,9 @@ namespace Janphe.Fantasy.Map
                 c.code = getCode(c.name, pack.cultures);
                 cells.culture[cell] = (ushort)(i + 1);
 
-                //msg.Add($"{c.name} {c.code} {c.i} {c.center}");
+                //msg.Add($"{c.name} {c.code} {c.i} {c.center} {c.color}");
             }
-            //DebugHelper.SaveArray("Map5Cultures.txt", msg);
+            //Debug.SaveArray("Map5Cultures.txt", msg);
 
             // the first culture with id 0 is for wildlands
             cultures.Insert(0, new CultureSet() { name = "Wildlands", i = 0, @base = 1, origin = 0 });
@@ -117,9 +121,11 @@ namespace Janphe.Fantasy.Map
                 Debug.LogError("Name base is empty, default nameBases will be applied");
                 nameBases = NamesGenerator.getNameBases();
             }
-            foreach (var c in cultures) { c.@base = c.@base % nameBases.Length; }
+            foreach (var c in cultures)
+            { c.@base = c.@base % nameBases.Length; }
 
             pack.cultures = cultures.ToArray();
+            //Debug.SaveArray("pack.cultures.txt", cultures.map(s => s == null ? "" : $"{'{'}'name':'{s.name}','base':{s.@base},'center':{s.center},'i':{s.i},'color':'{s.color}','type':'{s.type}','expansionism':{s.expansionism},'origin':{s.origin},'code':'{s.code}'{'}'}"));
 
             ////////////////////////////////////////////////////////////////////
             int placeCenter(Func<int, double> v)
@@ -135,7 +141,8 @@ namespace Janphe.Fantasy.Map
                 //foreach (var p in sorted) msg.Add($"{p} {v(p)}");
                 do
                 {
-                    c = sorted[Utils.biased(0, max, 5)]; spacing *= .9;
+                    c = sorted[Utils.biased(0, max, 5)];
+                    spacing *= .9;
                     //msg.Add($"{c} {spacing} {max}");
                 }
                 while (centers.find(cells.r_points[c][0], cells.r_points[c][1], spacing) != null);
@@ -149,35 +156,129 @@ namespace Janphe.Fantasy.Map
                 byte[] b1 = { 1, 2, 4 };
                 byte[] b2 = { 3, 7, 8, 9, 10, 12 };
 
-                if (cells.r_height[i] < 70 && b1.includes(cells.biome[i])) return "Nomadic"; // high penalty in forest biomes and near coastline
-                if (cells.r_height[i] > 50) return "Highland"; // no penalty for hills and moutains, high for other elevations
+                if (cells.r_height[i] < 70 && b1.includes(cells.biome[i]))
+                    return "Nomadic"; // high penalty in forest biomes and near coastline
+                if (cells.r_height[i] > 50)
+                    return "Highland"; // no penalty for hills and moutains, high for other elevations
                 var f = pack.features[cells.f[cells.haven[i]]]; // opposite feature
-                if (f.type == "lake" && f.cells > 5) return "Lake"; // low water cross penalty and high for growth not along coastline
+                if (f.type == "lake" && f.cells > 5)
+                    return "Lake"; // low water cross penalty and high for growth not along coastline
                 if (cells.harbor[i] != 0 && f.type != "lake" && Utils.P(.1)
                     || (cells.harbor[i] == 1 && Utils.P(.6))
                     || (pack.features[cells.f[i]].group == "isle" && Utils.P(.4))
-                    ) return "Naval"; // low water cross penalty and high for non-along-coastline growth
+                    )
+                    return "Naval"; // low water cross penalty and high for non-along-coastline growth
 
-                if (cells.r[i] != 0 && cells.fl[i] > 100) return "River"; // no River cross penalty, penalty for non-River growth
-                if (cells.t[i] > 2 && b2.includes(cells.biome[i])) return "Hunting"; // high penalty in non-native biomes
+                if (cells.r[i] != 0 && cells.fl[i] > 100)
+                    return "River"; // no River cross penalty, penalty for non-River growth
+                if (cells.t[i] > 2 && b2.includes(cells.biome[i]))
+                    return "Hunting"; // high penalty in non-native biomes
                 return "Generic";
             }
 
             double defineCultureExpansionism(string type)
             {
                 double @base = 1; // Generic
-                if (type == "Lake") @base = .8;
+                if (type == "Lake")
+                    @base = .8;
                 else
-                if (type == "Naval") @base = 1.5;
+                if (type == "Naval")
+                    @base = 1.5;
                 else
-                if (type == "River") @base = .9;
+                if (type == "River")
+                    @base = .9;
                 else
-                if (type == "Nomadic") @base = 1.5;
+                if (type == "Nomadic")
+                    @base = 1.5;
                 else
-                if (type == "Hunting") @base = .7;
+                if (type == "Hunting")
+                    @base = .7;
                 else
-                if (type == "Highland") @base = 1.2;
+                if (type == "Highland")
+                    @base = 1.2;
                 return Utils.rn((Random.NextDouble() * powerInput / 2.0 + 1) * @base, 1);
+            }
+        }
+
+        public void draw(SKCanvas canvas, Func<IList<SKPoint>, SKPath> curve)
+        {
+            var cells = pack.cells;
+            var vertices = pack.vertices;
+            var cultures = pack.cultures;
+            var n = cells.i.Length;
+
+            var used = new BitArray(n);
+            var paths = new Dictionary<int, List<List<int>>>();
+
+            var pp = new List<string>();
+            foreach (var i in cells.i)
+            {
+                if (0 == cells.culture[i])
+                    continue;
+                if (used[i])
+                    continue;
+                used[i] = true;
+                var c = cells.culture[i];
+                var onborder = cells.c[i].some(d => cells.culture[d] != c);
+                if (!onborder)
+                    continue;
+                var vertex = cells.v[i].find(v => vertices.c[v].some(d => cells.culture[d] != c));
+                var chain = connectVertices(vertex, c);
+                pp.push($"{i} vertex:{vertex} c:{c} {chain.Count}");
+                if (chain.Count < 3)
+                    continue;
+
+                if (!paths.ContainsKey(c))
+                    paths[c] = new List<List<int>>();
+                paths[c].Add(chain);
+            }
+            //Debug.SaveArray("Map5Cultures.culture.txt", cells.culture);
+            //Debug.SaveArray("Map5Cultures.draw.txt", pp);
+
+            var paint = new SKPaint() { IsAntialias = true };
+            paint.StrokeWidth = 0.5f;
+
+            foreach (var kv in paths)
+            {
+                var cul = cultures[kv.Key];
+                kv.Value.forEach(d =>
+                {
+                    var points = d.map(v => vertices.p[v]).map(p => new SKPoint((float)p[0], (float)p[1])).ToArray();
+                    var path = curve(points);
+
+                    paint.Style = SKPaintStyle.Fill;
+                    paint.Color = cul.color.ToColor().Opacity(0.6f).SK();
+                    canvas.DrawPath(path, paint);
+
+                    paint.Style = SKPaintStyle.Stroke;
+                    paint.Color = "#777777".ToColor().Opacity(0.6f).SK();
+                    canvas.DrawPath(path, paint);
+                });
+            }
+
+            List<int> connectVertices(int start, ushort t)
+            {
+                var chain = new List<int>();
+                for (int i = 0, current = start; i == 0 || current != start && i < 20000; i++)
+                {
+                    var prev = chain.Count > 0 ? chain.Last() : -1;
+                    chain.push(current); // add current vertex to sequence
+                    var c = vertices.c[current]; // cells adjacent to vertex
+                    c.filter(ci => cells.culture[ci] == t).forEach(ci => used[ci] = true);
+                    var c0 = c[0] >= n || cells.culture[c[0]] != t;
+                    var c1 = c[1] >= n || cells.culture[c[1]] != t;
+                    var c2 = c[2] >= n || cells.culture[c[2]] != t;
+                    var v = vertices.v[current]; // neighboring vertices
+                    if (v[0] != prev && c0 != c1)
+                        current = v[0];
+                    else if (v[1] != prev && c1 != c2)
+                        current = v[1];
+                    else if (v[2] != prev && c0 != c2)
+                        current = v[2];
+                    if (current == chain[chain.Count - 1])
+                    { Debug.Log("Next vertex is not found"); break; }
+                }
+                return chain;
             }
         }
 
@@ -217,15 +318,14 @@ namespace Janphe.Fantasy.Map
         public void expand()
         {
             //var msg = new List<string>();
-            //msg.Add("" + Random.NextDouble());
-            //msg.Add("" + neutralInput);
 
             var cells = pack.cells;
 
             var queue = new PriorityQueue<Item>((a, b) => a.p.CompareTo(b.p));
             foreach (var c in pack.cultures)
             {
-                if (c.i == 0 || c.removed) continue;
+                if (c.i == 0 || c.removed)
+                    continue;
                 queue.push(new Item() { e = c.center, p = 0, c = c.i });
                 //msg.Add($"{c.center} {0} {c.i}");
             }
@@ -239,6 +339,8 @@ namespace Janphe.Fantasy.Map
                 var p = next.p;
                 var type = pack.cultures[c].type;
                 //msg.Add($"------ {n} {c} {type} {p}");
+                //msg.push($"{cells.c[n].join(",")}");
+
                 foreach (var e in cells.r_neighbor_r[n])
                 {
                     var biome = cells.biome[e];
@@ -248,13 +350,18 @@ namespace Janphe.Fantasy.Map
                     var riverCost = getRiverCost(cells.r[e], e, type);
                     var typeCost = getTypeCost(cells.t[e], type);
                     var total = biomeCost + biomeChangeCost + heightCost + riverCost + typeCost;
-                    var totalCost = Utils.rn((decimal)p + (decimal)total / (decimal)pack.cultures[c].expansionism, 6);
+                    var tmp = (decimal)p + (decimal)total / (decimal)pack.cultures[c].expansionism;
+                    var totalCost = Utils.rn((double)tmp, 6);
 
-                    if (totalCost > neutral) continue;
+                    //msg.push($"{e} {total} {p} {c} {pack.cultures[c].expansionism} {totalCost}");
+
+                    if (totalCost > neutral)
+                        continue;
 
                     if (!cost.ContainsKey(e) || totalCost < cost[e])
                     {
-                        if (cells.s[e] > 0) cells.culture[e] = (ushort)c;// assign culture to populated cell
+                        if (cells.s[e] > 0)
+                            cells.culture[e] = (ushort)c;// assign culture to populated cell
                         cost[e] = totalCost;
                         queue.push(new Item() { e = e, p = totalCost, c = c });
 
@@ -262,42 +369,58 @@ namespace Janphe.Fantasy.Map
                     }
                 }
             }
-
-            //DebugHelper.SaveArray("Map5Cultures.expand.txt", msg);
+            //Debug.SaveArray("Map5Cultures.expand.txt", msg);
 
             int getBiomeCost(int c, int biome, string type)
             {
-                if (cells.biome[pack.cultures[c].center] == biome) return 10; // tiny penalty for native biome
-                if (type == "Hunting") return biomesData.cost[biome] * 5; // non-native biome penalty for hunters
-                if (type == "Nomadic" && biome > 4 && biome < 10) return biomesData.cost[biome] * 10; // forest biome penalty for nomads
+                if (cells.biome[pack.cultures[c].center] == biome)
+                    return 10; // tiny penalty for native biome
+                if (type == "Hunting")
+                    return biomesData.cost[biome] * 5; // non-native biome penalty for hunters
+                if (type == "Nomadic" && biome > 4 && biome < 10)
+                    return biomesData.cost[biome] * 10; // forest biome penalty for nomads
                 return biomesData.cost[biome] * 2; // general non-native biome penalty
             }
             int getHeightCost(int i, int h, string type)
             {
                 var f = pack.features[cells.f[i]];
                 var a = cells.area[i];
-                if (type == "Lake" && f.type == "lake") return 10; // no lake crossing penalty for Lake cultures
-                if (type == "Naval" && h < 20) return a * 2; // low sea/lake crossing penalty for Naval cultures
-                if (type == "Nomadic" && h < 20) return a * 50; // giant sea/lake crossing penalty for Nomads
-                if (h < 20) return a * 6; // general sea/lake crossing penalty
-                if (type == "Highland" && h < 44) return 3000; // giant penalty for highlanders on lowlands
-                if (type == "Highland" && h < 62) return 200; // giant penalty for highlanders on lowhills
-                if (type == "Highland") return 0; // no penalty for highlanders on highlands
-                if (h >= 67) return 200; // general mountains crossing penalty
-                if (h >= 44) return 30; // general hills crossing penalty
+                if (type == "Lake" && f.type == "lake")
+                    return 10; // no lake crossing penalty for Lake cultures
+                if (type == "Naval" && h < 20)
+                    return a * 2; // low sea/lake crossing penalty for Naval cultures
+                if (type == "Nomadic" && h < 20)
+                    return a * 50; // giant sea/lake crossing penalty for Nomads
+                if (h < 20)
+                    return a * 6; // general sea/lake crossing penalty
+                if (type == "Highland" && h < 44)
+                    return 3000; // giant penalty for highlanders on lowlands
+                if (type == "Highland" && h < 62)
+                    return 200; // giant penalty for highlanders on lowhills
+                if (type == "Highland")
+                    return 0; // no penalty for highlanders on highlands
+                if (h >= 67)
+                    return 200; // general mountains crossing penalty
+                if (h >= 44)
+                    return 30; // general hills crossing penalty
                 return 0;
             }
             double getRiverCost(int r, int i, string type)
             {
-                if (type == "River") return r != 0 ? 0 : 100; // penalty for river cultures
-                if (r == 0) return 0; // no penalty for others if there is no river
+                if (type == "River")
+                    return r != 0 ? 0 : 100; // penalty for river cultures
+                if (r == 0)
+                    return 0; // no penalty for others if there is no river
                 return Math.Min(Math.Max(cells.fl[i] / 10.0, 20), 100); // river penalty from 20 to 100 based on flux
             }
             int getTypeCost(int t, string type)
             {
-                if (t == 1) return type == "Naval" || type == "Lake" ? 0 : type == "Nomadic" ? 60 : 20; // penalty for coastline
-                if (t == 2) return type == "Naval" || type == "Nomadic" ? 30 : 0; // low penalty for land level 2 for Navals and nomads
-                if (t != -1) return type == "Naval" || type == "Lake" ? 100 : 0;  // penalty for mainland for navals
+                if (t == 1)
+                    return type == "Naval" || type == "Lake" ? 0 : type == "Nomadic" ? 60 : 20; // penalty for coastline
+                if (t == 2)
+                    return type == "Naval" || type == "Nomadic" ? 30 : 0; // low penalty for land level 2 for Navals and nomads
+                if (t != -1)
+                    return type == "Naval" || type == "Lake" ? 100 : 0;  // penalty for mainland for navals
                 return 0;
             }
         }
@@ -313,7 +436,8 @@ namespace Janphe.Fantasy.Map
             var h = cells.r_height;
             var temp = grid.cells.temp;
             double n(int cell) => Math.Ceiling((double)s[cell] / sMax * 3); // normalized cell score
-            double td(int cell, int goal) { var d = Math.Abs(temp[cells.g[cell]] - goal); return d > 0 ? d + 1 : 1; } // temperature difference fee
+            double td(int cell, int goal)
+            { var d = Math.Abs(temp[cells.g[cell]] - goal); return d > 0 ? d + 1 : 1; } // temperature difference fee
             double bd(int cell, int[] biomes, int fee = 4) => biomes.includes(cells.biome[cell]) ? 1 : fee; // biome difference fee
             double sf(int cell, int fee = 4) => cells.haven[cell] != 0 && pack.features[cells.f[cells.haven[cell]]].type != "lake" ? 1 : fee; // not on sea coast fee
 

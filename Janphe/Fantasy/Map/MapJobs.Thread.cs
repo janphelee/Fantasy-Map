@@ -21,20 +21,23 @@ namespace Janphe.Fantasy.Map
                 MapTemplate = "Archipelago",
 
                 PointsNumber = 1,
-                PrecipitationInput = 127,
+                PrecipitationInput = 107,
                 WindsInput = new int[] { 270, 90, 225, 315, 135, 315 },
-                TemperaturePoleInput = -26,//[-30,30]
+                TemperaturePoleInput = -28,//[-30,30]
                 HeightExponentInput = 1.8f,//[1.5,2.1]
 
-                CulturesNumber = 5,
-                CulturesSet = "highFantasy",
-                CulturesSet_DataMax = 23,
-
+                CulturesNumber = 12,
+                CulturesSet = "european",
+                CulturesSet_DataMax = 15,
+                PowerInput = 2,
                 NeutralInput = 1,
-                PowerInput = 4,
+                RegionsNumber = 15,
                 ReligionsNumber = 7,
+
+                ManorsInput = 1000,// burgs
+                StatesNeutral = 1,
             };
-            Options.TemperatureEquator = new Options.Value() { min = -30, max = 30, value = 18 };
+            Options.TemperatureEquator = new Options.Value() { min = -30, max = 30, value = 29 };
             Options.TemperatureScale = "°C";
         }
 
@@ -51,6 +54,9 @@ namespace Janphe.Fantasy.Map
         private Map4Coastline map4Coastline;
         private Map5BiomesSystem map5Biomes;
         private Map2Precipitation map2Precipitation;
+        private Map5Cultures map5Cultures;
+        private Map6Religions map6Religions;
+        private Map6BurgsAndStates map6BurgsAndStates;
 
         private void generate(Stopwatch watcher)
         {
@@ -74,15 +80,13 @@ namespace Janphe.Fantasy.Map
             var feature = new Map1Features(this);
             feature.markFeatures();
             Debug.Log($"4 markFeatures {Random.NextDouble()}");
-            //Debug.Log($"markFeatures: {elapsed(watcher)}ms");
+
             feature.openNearSeaLakes();
             Debug.Log($"5 openNearSeaLakes {Random.NextDouble()}");
-            //Debug.Log($"openLakes: {elapsed(watcher)}ms");
 
             map1OceanLayers = new Map1OceanLayers(this);
             map1OceanLayers.generate();
             Debug.Log($"6 Map1OceanLayers {Random.NextDouble()}");
-            //Debug.Log($"drawOceanLayers: {elapsed(watcher)}ms");
 
             double mapSize = 0, latitude = 0;
             defineMapSize(Options.MapTemplate, grid, ref mapSize, ref latitude);
@@ -90,78 +94,70 @@ namespace Janphe.Fantasy.Map
 
             mapCoordinates = calculateMapCoordinates(Options.Width, Options.Height, mapSize, latitude);
             Debug.Log($"8 calculateMapCoordinates {Random.NextDouble()}");
-            //Debug.Log(JsonUtility.ToJson(mapCoordinates));
 
             map1Temperatures = new Map1Temperatures(this);
             map1Temperatures.calculateTemperatures();
+            //Debug.SaveArray("temp.txt", grid.cells.temp);
             map1Temperatures.generate();
-            Debug.Log($"9 calculateTemperatures {Random.NextDouble()}");
-            //Debug.Log($"calculateTemperatures: {elapsed(watcher)}ms");
-            //DebugHelper.SaveArray("temp.txt", grid.cells.temp);
+            Debug.Log($"9 calculateTemperatures {Random.NextDouble()} {Options.TemperatureEquator.value} {Options.TemperaturePoleInput} {Options.HeightExponentInput}");
 
             map2Precipitation = new Map2Precipitation(this);
             map2Precipitation.generatePrecipitation();
-            Debug.Log($"10 generatePrecipitation {Random.NextDouble()}");
-            //Debug.Log($"generatePrecipitation: {elapsed(watcher)}ms");
-            //DebugHelper.SaveArray("prec.txt", grid.cells.prec);
+            Debug.Log("map2Precipitation winds => " + Debug.toString(Options.WindsInput));
+            Debug.Log($"10 generatePrecipitation {Random.NextDouble()} modifier:{Options.PrecipitationInput / 100d}");
+            //Debug.SaveArray("prec.txt", grid.cells.prec);
+            //Debug.SaveArray("grid.cells.h.txt", grid.cells.h);
 
             pack = new Grid();
-            //DebugHelper.SaveArray("grid.cells.h.txt", grid.cells.r_height);
             reGraph();
             Debug.Log($"11 reGraph {Random.NextDouble()}");
-            //Debug.Log($"reGraph: {elapsed(watcher)}ms");
-            //DebugHelper.SaveArray("pack.cells.h.txt", pack.cells.r_height);
+            //Debug.SaveArray("pack.cells.area.txt", pack.cells.area);
 
             new Map3Features(this).reMarkFeatures();
-            //Debug.Log($"reMarkFeatures: {elapsed(watcher)}ms");
 
             map4Coastline = new Map4Coastline(this);
             map4Coastline.generate();
             Debug.Log($"12 drawCoastline {Random.NextDouble()}");
-            //Debug.Log($"drawCoastline: {elapsed(watcher)}ms");
 
             new Map4Lakes(this).elevateLakes();
             Debug.Log($"13 elevateLakes {Random.NextDouble()}");
-            //Debug.Log($"elevateLakes: {elapsed(watcher)}ms");
-            //DebugHelper.SaveArray("Map4Lakes.h.txt", pack.cells.r_height);
+            //Debug.SaveArray("Map4Lakes.h.txt", pack.cells.r_height);
 
             Random.Seed(Options.MapSeed);
             var rivers = new Map4Rivers(this);
             rivers.generate();
             Debug.Log($"14 Map4Rivers {Random.NextDouble()}");
-            //Debug.Log($"generateRivers: {elapsed(watcher)}ms");
 
             map5Biomes = new Map5BiomesSystem(this);
             map5Biomes.defineBiomes();
             Debug.Log($"15 defineBiomes {Random.NextDouble()}");
-            //DebugHelper.SaveArray("pack.cells.biome.txt", pack.cells.biome);
-            //Debug.Log($"defineBiomes: {elapsed(watcher)}ms");
+
             map5Biomes.rankCells();
             map5Biomes.generate();
-            //DebugHelper.SaveArray("pack.cells.s.txt", pack.cells.s);
-            //DebugHelper.SaveArray("pack.cells.pop.txt", pack.cells.pop);
+            //Debug.SaveArray("pack.cells.biome.txt", pack.cells.biome);
+            //Debug.SaveArray("pack.cells.s.txt", pack.cells.s);
+            //Debug.SaveArray("pack.cells.pop.txt", pack.cells.pop);
             Debug.Log($"16 rankCells {Random.NextDouble()} rankCells: {elapsed(watcher)}ms");
 
-            var cultures = new Map5Cultures(this);
-            cultures.generate();
+            map5Cultures = new Map5Cultures(this);
+            map5Cultures.generate();
             Debug.Log($"17 Cultures {Random.NextDouble()} cultures.generate: {elapsed(watcher)}ms");
 
-            cultures.expand();
-            Debug.Log($"cultures.expand: {elapsed(watcher)}ms");
-            Debug.Log($"18 Cultures.expand {Random.NextDouble()}");
+            map5Cultures.expand();
+            Debug.Log($"18 Cultures.expand {Random.NextDouble()} neutralInput:{Options.NeutralInput}");
+            //Debug.SaveArray("pack.cells.culture.txt", pack.cells.culture);
 
-            var burgs = new Map6BurgsAndStates(this);
+            var burgs = map6BurgsAndStates = new Map6BurgsAndStates(this);
             burgs.generate();
             Debug.Log($"19 Map6BurgsAndStates.generate: {elapsed(watcher)}ms");
-            new Map6Religions(this).generate();
+
+            map6Religions = new Map6Religions(this);
+            map6Religions.generate();
+
             burgs.defineStateForms();
             burgs.generateProvinces();
             burgs.defineBurgFeatures();
             Debug.Log($"20 Map6Religions.generate: {elapsed(watcher)}ms");
-
-            //burgs.drawStates();
-            //burgs.drawBorders();
-            //burgs.drawStateLabels();
         }
 
         protected override void process(Action<long> callback)
@@ -187,6 +183,7 @@ namespace Janphe.Fantasy.Map
                 //DebugHelper.SaveArray("grid.cells.i.txt", grid.cells.i);
                 //DebugHelper.SaveArray("grid.cells.t.txt", grid.cells.t);
                 //DebugHelper.SaveArray("grid.cells.b.txt", grid.cells.r_near_border.Select(b => b ? 1 : 0).ToArray());
+
                 var cells = grid.cells;
                 var points = grid.points;
                 var features = grid.features;
@@ -218,13 +215,17 @@ namespace Janphe.Fantasy.Map
                                 var dist2 = Math.Pow(y - points[e][1], 2) + Math.Pow(x - points[e][0], 2);
                                 if (dist2 < spacing2)
                                     continue; // too close to each other
-                                var x1 = rn((x + points[e][0]) / 2, 1);
-                                var y1 = rn((y + points[e][1]) / 2, 1);
+
+                                var x1 = (x + points[e][0]) / 2;// rn(, 1);
+                                var y1 = (y + points[e][1]) / 2;// rn(, 1);
+                                x1 = rn(x1, 4);
+                                y1 = rn(y1, 4);
                                 addNewPoint(i, height, x1, y1);
                             }
                         }
                     }
                 }
+
                 void addNewPoint(int i, byte height, double x, double y)
                 {
                     newP.Add(new double[] { x, y });
@@ -233,7 +234,10 @@ namespace Janphe.Fantasy.Map
                 }
             }
             {
-                //DebugHelper.SaveArray("addNewPoint.txt", newP);
+                //Debug.SaveArray("addOldPoint.txt", grid.points);
+                //Debug.SaveArray("addNewPoint.txt", newP);
+                //var msg = new List<string>();
+
                 pack.voronoi = _calculateVoronoi(pack, newP, grid.boundary);
 
                 var cells = pack.cells;
@@ -243,11 +247,16 @@ namespace Janphe.Fantasy.Map
                     D3.quadtree(cells.r_points.Select((p, d) => new D3.Quadtree.Value(p[0], p[1], d)).ToArray());
                 cells.r_height = newH.ToArray();
                 cells.area = // cell area
-                    cells.i.Select(i => (ushort)Math.Abs(D3.polygonArea(pack.getGridPolygon(i)))).ToArray();
+                    cells.i.Select(i =>
+                    {
+                        var pp = pack.getGridPolygon(i);
+                        var aa = D3.polygonArea(pp);
+                        //msg.push($"i:{i} area:{aa} {pp.join(" ", ",")}");
+                        return (ushort)Math.Abs(aa);
+                    }).ToArray();
 
-                //DebugHelper.SaveArray("pack.cells.i.txt", cells.i);
-                //DebugHelper.SaveArray("pack.cells.h.txt", cells.r_height);
-                //DebugHelper.SaveArray("pack.cells.c.txt", cells.c);
+                //Debug.SaveArray("pack.cells.area2.txt", msg);
+                //Debug.SaveArray("pack.cells.v.txt", pack.cells.v);
             }
         }
 

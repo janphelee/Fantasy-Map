@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using SkiaSharp;
 
 namespace Janphe.Fantasy.Map
@@ -26,23 +27,7 @@ namespace Janphe.Fantasy.Map
             var color = new string[] { "#53679f", "#fbe79f", "#b5b887", "#d2d082", "#c8d68f", "#b6d95d", "#29bc56", "#7dcb35", "#409c43", "#4b6b32", "#96784b", "#d5e7eb", "#0b9131" };
             var habitability = new byte[] { 0, 4, 10, 22, 30, 50, 100, 80, 90, 12, 4, 0, 12 };
             var iconsDensity = new byte[] { 0, 3, 2, 120, 120, 120, 120, 150, 150, 100, 5, 0, 150 };
-
-            Dictionary<string, int>[] icons = {
-             new Dictionary<string, int>{},
-             new Dictionary<string, int>{{ "dune",     3},{ "cactus",   6},{ "deadTree", 1}},
-             new Dictionary<string, int>{{ "dune",     9},{ "deadTree", 1}},
-             new Dictionary<string, int>{{ "acacia",   1},{ "grass",    9}},
-             new Dictionary<string, int>{{ "grass",    1}},
-             new Dictionary<string, int>{{ "acacia",   8},{ "palm",     1}},
-             new Dictionary<string, int>{{ "deciduous",1}},
-             new Dictionary<string, int>{{ "acacia",   5},{ "palm",     3},{ "deciduous", 1},{ "swamp", 1}},
-             new Dictionary<string, int>{{ "deciduous",6},{ "swamp",    1}},
-             new Dictionary<string, int>{{ "conifer",  1}},
-             new Dictionary<string, int>{{ "grass",    1}},
-             new Dictionary<string, int>{},
-             new Dictionary<string, int>{{ "swamp",    1}},
-            };
-
+            var icons = JArray.Parse(@"[{},{dune:3, cactus:6, deadTree:1},{dune:9, deadTree:1},{acacia:1, grass:9},{grass:1},{acacia:8, palm:1},{deciduous:1},{acacia:5, palm:3, deciduous:1, swamp:1},{deciduous:6, swamp:1},{conifer:1},{grass:1},{},{swamp:1}]");
             var cost = new byte[] { 10, 200, 150, 60, 50, 70, 70, 80, 90, 80, 100, 255, 150 }; // biome movement cost
 
             byte[][] biomesMartix = {
@@ -54,6 +39,18 @@ namespace Janphe.Fantasy.Map
                 new byte[]{7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 10, 10, 10 }
             };
 
+            var biomeIcons = new string[icons.Count][];
+            icons.forEach((d, i) =>
+            {
+                var parsed = new List<string>();
+                foreach (var kv in d.Value<JObject>())
+                {
+                    for (var j = 0; j < (int)kv.Value; ++j)
+                    { parsed.Add(kv.Key); }
+                }
+                biomeIcons[i] = parsed.ToArray();
+            });
+
             var biome = new Biomes()
             {
                 i = D3.range(name.Length),
@@ -62,7 +59,7 @@ namespace Janphe.Fantasy.Map
                 biomesMartix = biomesMartix,
                 habitability = habitability,
                 iconsDensity = iconsDensity,
-                icons = icons,
+                icons = biomeIcons,
                 cost = cost,
             };
             return biome;
@@ -106,6 +103,7 @@ namespace Janphe.Fantasy.Map
             // to adjust population by cell area
             double areaMean = D3.mean(cells.area);
 
+            //var ss = new List<string>();
             foreach (var i in cells.i)
             {
                 double s = biomesData.habitability[cells.biome[i]]; // base suitability derived from biome habitability
@@ -140,7 +138,10 @@ namespace Janphe.Fantasy.Map
                 cells.s[i] = (short)(s / 5); // general population rate
                                              // cell rural population is suitability adjusted by cell area
                 cells.pop[i] = cells.s[i] > 0 ? (float)(cells.s[i] * cells.area[i] / areaMean) : 0;
+
+                //ss.Add($"{i} {cells.s[i]}");
             }
+            //Debug.SaveArray("Map5BiomesSystem.rankCells.ss.txt", ss);
         }
 
         public List<SKPoint[]>[] Paths { get; private set; }
@@ -169,7 +170,7 @@ namespace Janphe.Fantasy.Map
                     return;
                 var points = chain.map(v => vertices.p[v]).map(p => new SKPoint((float)p[0], (float)p[1]));
 
-                if (paths[b]==null)
+                if (paths[b] == null)
                     paths[b] = new List<SKPoint[]>();
                 paths[b].Add(points.ToArray());
             });

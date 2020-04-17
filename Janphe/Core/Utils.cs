@@ -14,9 +14,16 @@ namespace Janphe
 
         // C#中的Math.Round()默认并不是使用的"四舍五入"法。
         public static int round(double x) { return (int)Math.Round(x, MidpointRounding.AwayFromZero); }
+        public static decimal round(decimal x) { return Math.Round(x, MidpointRounding.AwayFromZero); }
 
-        public static double rn(double v, int d = 0) { var m = Math.Pow(10, d); return round(v * m) / m; }
-        public static double rn(decimal v, int d = 0) { return rn((double)v, d); }
+        public static double rn(double v, int d = 0) { return (double)rn((decimal)v, d); }
+        public static decimal rn(decimal v, int d = 0)
+        {
+            var m = (long)Math.Pow(10, d);
+            var n = (long)v;
+            var f = (v - n) * m;
+            return n + round(f) / m;
+        }
 
         public static double[] rn(double[] vv, int d)
         {
@@ -54,6 +61,10 @@ namespace Janphe
             if (max < min)
             { max = min; min = 0; }
             return Math.Floor(Random.NextDouble() * (max - min + 1)) + min;
+        }
+        public static int randi(int min, int max)
+        {
+            return (int)rand(min, max);
         }
 
         // probability shorthand
@@ -223,6 +234,13 @@ namespace Janphe
         public static int biased(double min, double max, double ex)
         {
             return (int)round(min + (max - min) * Math.Pow(Random.NextDouble(), ex));
+        }
+
+        public static IEnumerable<T> intersect<T>(IEnumerable<T> a, IEnumerable<T> b)
+        {
+            var setA = new HashSet<T>(a);
+            var setB = new HashSet<T>(b);
+            return setA.Where(_a => setB.Contains(_a));
         }
 
         // check if char is vowel(元音)

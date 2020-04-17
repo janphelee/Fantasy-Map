@@ -28,21 +28,29 @@ namespace Janphe.Fantasy.Map
 
                 for (var c = i + 1; str.Length < 5; c++)
                 {
-                    if (c >= d.Length) break;
+                    if (c >= d.Length)
+                        break;
                     str += d[c];
-                    if (str == " ") break;
-                    if (d[c] != 'o' && d[c] != 'e' && Utils.vowel(d[c]) && d[c + 1] == d[c]) break;
+                    if (str == " ")
+                        break;
+                    if (d[c] != 'o' && d[c] != 'e' && Utils.vowel(d[c]) && d[c + 1] == d[c])
+                        break;
 
                     var outOfRange = c + 2 >= d.Length;
-                    if (outOfRange) Debug.LogWarning($"i:{i} c:{c} d.len:{d.Length} str:{str}");
-                    if (outOfRange || d[c + 2] == ' ') { str += d[c + 1]; break; }
+                    //if (outOfRange) Debug.LogWarning($"i:{i} c:{c} d.len:{d.Length} str:{str}");
+                    if (outOfRange || d[c + 2] == ' ')
+                    { str += d[c + 1]; break; }
 
-                    if (Utils.vowel(d[c])) v++;
-                    if (v != 0 && Utils.vowel(d[c + 2])) break;
+                    if (Utils.vowel(d[c]))
+                        v++;
+                    if (v != 0 && Utils.vowel(d[c + 2]))
+                        break;
                 }
 
-                if (i >= 0) f = d[i];
-                if (!chain.ContainsKey(f)) chain[f] = new List<string>();
+                if (i >= 0)
+                    f = d[i];
+                if (!chain.ContainsKey(f))
+                    chain[f] = new List<string>();
                 chain[f].Add(str);
             }
 
@@ -59,7 +67,8 @@ namespace Janphe.Fantasy.Map
 
         public string getBase(int @base, int min, int max, string dupl, double multi)
         {
-            if (!chains.ContainsKey(@base)) updateChain(@base);
+            if (!chains.ContainsKey(@base))
+                updateChain(@base);
 
             var data = chains[@base];
             if (data == null || data[' '] == null)
@@ -69,23 +78,33 @@ namespace Janphe.Fantasy.Map
                 return "ERROR";
             }
 
-            if (0 == min) min = nameBases[@base].min;
-            if (0 == max) max = nameBases[@base].max;
-            if (dupl != "") dupl = nameBases[@base].d;
-            if (0 == multi) multi = nameBases[@base].m;
+            if (0 == min)
+                min = nameBases[@base].min;
+            if (0 == max)
+                max = nameBases[@base].max;
+            if (dupl != "")
+                dupl = nameBases[@base].d;
+            if (0 == multi)
+                multi = nameBases[@base].m;
 
-            var v = data[' ']; var cur = v[(int)Utils.rand(v.Count - 1)]; var w = "";
+            var v = data[' '];
+            var cur = v[(int)Utils.rand(v.Count - 1)];
+            var w = "";
             for (var i = 0; i < 21; i++)
             {
                 if (cur == " " && Random.NextDouble() > multi)
                 {
-                    if (w.Length < min) { cur = ""; w = ""; v = data[' ']; } else break;
+                    if (w.Length < min)
+                    { cur = ""; w = ""; v = data[' ']; }
+                    else
+                        break;
                 }
                 else
                 {
                     if ((w + cur).Length > max)
                     {
-                        if (w.Length < min) w += cur;
+                        if (w.Length < min)
+                            w += cur;
                         break;
                     }
                     else if (cur == " " && w.Length + 1 < min)
@@ -103,25 +122,44 @@ namespace Janphe.Fantasy.Map
                 cur = v[(int)Utils.rand(v.Count - 1)];
             }
 
+            // parse word to get a final name
             var name = w.reduce((r, c, i, d) =>
             {
-                var outOfRange = i + 1 >= d.Length;
-                if (outOfRange) Debug.LogWarning($"i:{i} d.len:{d.Length} r:{r}");
-                if (outOfRange) return r;
+                var less1 = i + 1 < d.Length;
+                var less2 = i + 2 < d.Length;
 
-                if (c == d[i + 1] && !dupl.includes(c)) return r; // duplication is not allowed
-                if (r.Length == 0) return c.toUpperCase();
-                if (r.slice(-1) == "-" && c == ' ') return r; // remove space after hyphen
-                if (r.slice(-1) == " ") return r + c.toUpperCase(); // capitalize letter after space
-                if (r.slice(-1) == "-") return r + c.toUpperCase(); // capitalize letter after hyphen
-                if (c == 'a' && d[i + 1] == 'e') return r; // "ae" => "e"
-                if (c == ' ' && i + 1 == d.Length) return r;
-                if (i + 2 < d.Length && !Utils.vowel(c) && !Utils.vowel(d[i + 1]) && !Utils.vowel(d[i + 2])) return r; // remove consonant before 2 consonants
-                if (i + 2 < d.Length && c == d[i + 1] && c == d[i + 2]) return r; // remove tree same letters in a row
+                if (less1 && c == d[i + 1] && !dupl.includes(c))
+                    return r; // duplication is not allowed
+                if (r.Length == 0)
+                    return c.toUpperCase();
+                if (r.slice(-1) == "-" && c == ' ')
+                    return r; // remove space after hyphen
+                if (r.slice(-1) == " ")
+                    return r + c.toUpperCase(); // capitalize letter after space
+                if (r.slice(-1) == "-")
+                    return r + c.toUpperCase(); // capitalize letter after hyphen
+                if (less1 && c == 'a' && d[i + 1] == 'e')
+                    return r; // "ae" => "e"
+                if (c == ' ' && i + 1 == d.Length)
+                    return r;
+                if (less1 && i + 2 < d.Length && !Utils.vowel(c) && !Utils.vowel(d[i + 1]) && !Utils.vowel(d[i + 2]))
+                    return r; // remove consonant before 2 consonants
+                if (less1 && less2 && i + 2 < d.Length && c == d[i + 1] && c == d[i + 2])
+                    return r; // remove tree same letters in a row
                 return r + c;
             }, "");
 
-            return string.Empty;
+            var sss = name.split(' ');
+            if (sss.some(part => part.Length < 2))
+                name = sss.map((p, i) => i > 0 ? p.ToLower() : p).join("");
+
+            if (name.Length < 2)
+            {
+                Debug.LogError("Name is too short! Random name to be selected");
+                name = Utils.ra(nameBases[@base].b.split(","));
+            }
+
+            return name;
         }
 
         public string getBaseShort(int @base)
@@ -134,12 +172,17 @@ namespace Janphe.Fantasy.Map
             }
             var min = nameBases[@base].min - 1;
             var max = Math.Max(nameBases[@base].max - 2, min);
-            return getBase(@base, min, max, "", 0);
+            var s = getBase(@base, min, max, "", 0);
+            //Debug.Log($"getBaseShort {@base} {min} {max} {s}");
+            return s;
         }
         // generate short name for culture
         public string getCultureShort(int culture)
         {
-            return getBaseShort(map.pack.cultures[culture].@base);
+            var @base = map.pack.cultures[culture].@base;
+            var s = getBaseShort(@base);
+            //Debug.Log($"getCultureShort {culture} {@base} {s}");
+            return s;
         }
 
         // generate name for culture
@@ -153,65 +196,97 @@ namespace Janphe.Fantasy.Map
         // generate state name based on capital or random name and culture-specific suffix
         public string getState(string name, int culture, int @base = -1)
         {
-            if (@base < 0) @base = map.pack.cultures[culture].@base;
+            if (@base < 0)
+                @base = map.pack.cultures[culture].@base;
 
             // exclude endings inappropriate for states name
             if (name.Contains(" "))
                 name = name.Replace(" ", "")
                     .ToLower()
                     .capitalize(); // don't allow multiword state names
-            if (name.Length > 6 && name.slice(-4) == "berg") name = name.slice(0, -4); // remove -berg for any
-            if (name.Length > 5 && name.slice(-3) == "ton") name = name.slice(0, -3); // remove -ton for any
+            if (name.Length > 6 && name.slice(-4) == "berg")
+                name = name.slice(0, -4); // remove -berg for any
+            if (name.Length > 5 && name.slice(-3) == "ton")
+                name = name.slice(0, -3); // remove -ton for any
 
-            if (@base == 5 && new string[] { "sk", "ev", "ov" }.includes(name.slice(-2))) name = name.slice(0, -2); // remove -sk/-ev/-ov for Ruthenian
-            else if (@base == 12) return Utils.vowel(name.slice(-1)) ? name : name + "u"; // Japanese ends on any vowel or -u
-            else if (@base == 18 && Utils.P(.4)) name = Utils.vowel(name.slice(0, 1).ToLower()) ? "Al" + name.ToLower() : "Al " + name; // Arabic starts with -Al
+            if (@base == 5 && new string[] { "sk", "ev", "ov" }.includes(name.slice(-2)))
+                name = name.slice(0, -2); // remove -sk/-ev/-ov for Ruthenian
+            else if (@base == 12)
+                return Utils.vowel(name.slice(-1)) ? name : name + "u"; // Japanese ends on any vowel or -u
+            else if (@base == 18 && Utils.P(.4))
+                name = Utils.vowel(name.slice(0, 1).ToLower()) ? "Al" + name.ToLower() : "Al " + name; // Arabic starts with -Al
 
             // no suffix for fantasy bases
-            if (@base > 32 && @base < 42) return name;
+            if (@base > 32 && @base < 42)
+                return name;
 
             // define if suffix should be used
             if (name.Length > 3 && Utils.vowel(name.slice(-1)))
             {
-                if (Utils.vowel(name.slice(-2, -1)) && Utils.P(.85)) name = name.slice(0, -2); // 85% for vv
-                else if (Utils.P(.7)) name = name.slice(0, -1); // ~60% for cv
-                else return name;
+                if (Utils.vowel(name.slice(-2, -1)) && Utils.P(.85))
+                    name = name.slice(0, -2); // 85% for vv
+                else if (Utils.P(.7))
+                    name = name.slice(0, -1); // ~60% for cv
+                else
+                    return name;
             }
-            else if (Utils.P(.4)) return name; // 60% for cc and vc
+            else if (Utils.P(.4))
+                return name; // 60% for cc and vc
 
             // define suffix
             var suffix = "ia"; // standard suffix
 
             var rnd = Random.NextDouble();
             var l = name.Length;
-            if (@base == 3 && rnd < .03 && l < 7) suffix = "terra"; // Italian
-            else if (@base == 4 && rnd < .03 && l < 7) suffix = "terra"; // Spanish
-            else if (@base == 13 && rnd < .03 && l < 7) suffix = "terra"; // Portuguese
-            else if (@base == 2 && rnd < .03 && l < 7) suffix = "terre"; // French
-            else if (@base == 0 && rnd < .5 && l < 7) suffix = "land"; // German
-            else if (@base == 1 && rnd < .4 && l < 7) suffix = "land"; // English
-            else if (@base == 6 && rnd < .3 && l < 7) suffix = "land"; // Nordic
-            else if (@base == 32 && rnd < .1 && l < 7) suffix = "land"; // generic Human
-            else if (@base == 7 && rnd < .1) suffix = "eia"; // Greek
-            else if (@base == 9 && rnd < .35) suffix = "maa"; // Finnic
-            else if (@base == 15 && rnd < .4 && l < 6) suffix = "orszag"; // Hungarian
-            else if (@base == 16) suffix = rnd < .6 ? "stan" : "ya"; // Turkish
-            else if (@base == 10) suffix = "guk"; // Korean
-            else if (@base == 11) suffix = " Guo"; // Chinese
-            else if (@base == 14) suffix = rnd < .5 && l < 6 ? "tlan" : "co"; // Nahuatl
-            else if (@base == 17 && rnd < .8) suffix = "a"; // Berber
-            else if (@base == 18 && rnd < .8) suffix = "a"; // Arabic
+            if (@base == 3 && rnd < .03 && l < 7)
+                suffix = "terra"; // Italian
+            else if (@base == 4 && rnd < .03 && l < 7)
+                suffix = "terra"; // Spanish
+            else if (@base == 13 && rnd < .03 && l < 7)
+                suffix = "terra"; // Portuguese
+            else if (@base == 2 && rnd < .03 && l < 7)
+                suffix = "terre"; // French
+            else if (@base == 0 && rnd < .5 && l < 7)
+                suffix = "land"; // German
+            else if (@base == 1 && rnd < .4 && l < 7)
+                suffix = "land"; // English
+            else if (@base == 6 && rnd < .3 && l < 7)
+                suffix = "land"; // Nordic
+            else if (@base == 32 && rnd < .1 && l < 7)
+                suffix = "land"; // generic Human
+            else if (@base == 7 && rnd < .1)
+                suffix = "eia"; // Greek
+            else if (@base == 9 && rnd < .35)
+                suffix = "maa"; // Finnic
+            else if (@base == 15 && rnd < .4 && l < 6)
+                suffix = "orszag"; // Hungarian
+            else if (@base == 16)
+                suffix = rnd < .6 ? "stan" : "ya"; // Turkish
+            else if (@base == 10)
+                suffix = "guk"; // Korean
+            else if (@base == 11)
+                suffix = " Guo"; // Chinese
+            else if (@base == 14)
+                suffix = rnd < .5 && l < 6 ? "tlan" : "co"; // Nahuatl
+            else if (@base == 17 && rnd < .8)
+                suffix = "a"; // Berber
+            else if (@base == 18 && rnd < .8)
+                suffix = "a"; // Arabic
 
             return validateSuffix(name, suffix);
         }
 
         public static string validateSuffix(string name, string suffix)
         {
-            if (name.slice(-1 * suffix.Length) == suffix) return name; // no suffix if name already ends with it
+            if (name.slice(-1 * suffix.Length) == suffix)
+                return name; // no suffix if name already ends with it
             var s1 = suffix.slice(0, 1);
-            if (name.slice(-1) == s1) name = name.slice(0, -1); // remove name last letter if it's a suffix first letter
-            if (Utils.vowel(s1) == Utils.vowel(name.slice(-1)) && Utils.vowel(s1) == Utils.vowel(name.slice(-2, -1))) name = name.slice(0, -1); // remove name last char if 2 last chars are the same type as suffix's 1st
-            if (name.slice(-1) == s1) name = name.slice(0, -1); // remove name last letter if it's a suffix first letter
+            if (name.slice(-1) == s1)
+                name = name.slice(0, -1); // remove name last letter if it's a suffix first letter
+            if (Utils.vowel(s1) == Utils.vowel(name.slice(-1)) && Utils.vowel(s1) == Utils.vowel(name.slice(-2, -1)))
+                name = name.slice(0, -1); // remove name last char if 2 last chars are the same type as suffix's 1st
+            if (name.slice(-1) == s1)
+                name = name.slice(0, -1); // remove name last letter if it's a suffix first letter
             return name + suffix;
         }
 
