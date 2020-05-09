@@ -1410,8 +1410,8 @@ namespace Janphe.Fantasy.Map
             {
                 var s = states[pp.Key];
                 var points = pp.Value.ToArray();
-
-                var path = SKPath.ParseSvgPathData(lineGen1(points));
+                var svgData = lineGen1(points);
+                var path = SKPath.ParseSvgPathData(svgData);
                 var pathMeasure = new SKPathMeasure(path, false, 1);
 
                 var pathLength = points.Length > 1 ? pathMeasure.Length / letterLength : 0;
@@ -1456,17 +1456,18 @@ namespace Janphe.Fantasy.Map
                 paint.TextSize = ratio * 22 / 100;
                 paint.Style = SKPaintStyle.Fill;
 
-                var top = (lines.Length - 1) / -2f;
+                var rect = new SKRect();
+                var width = paint.MeasureText(s.name, ref rect);
+                //Debug.Log($"{pp.Key,-2} {s.name,-16} w:{width,-8} rect:{rect.ToString()}");
+
                 lines.forEach((l, i) =>
                 {
-                    canvas.DrawTextOnPath(l, path, 0, 22 * i * top, paint);
+                    canvas.DrawTextOnPath(l, path, 0, rect.Height * i, paint);
                 });
 
                 paint.Style = SKPaintStyle.Stroke;
                 canvas.DrawPath(path, paint);
-                canvas.DrawCircle(points.First().SK(), 2, paint);
-                canvas.DrawCircle(points.Last().SK(), 2, paint);
-
+                points.forEach(p => canvas.DrawCircle(p.SK(), 2, paint));
             });
 
         }
