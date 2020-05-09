@@ -51,13 +51,16 @@ namespace Janphe
             var used = new BitArray(numSides);
             for (var s = 0; s < numSides; s++)
             {
-                if (used[s]) continue;
+                if (used[s])
+                    continue;
 
                 var r = s_begin_r(s);
-                if (r >= numRegions) continue;
+                if (r >= numRegions)
+                    continue;
 
                 var out_s = raycast_s(s);
-                for (var i = 0; i < out_s.Length; ++i) used[out_s[i]] = true;
+                for (var i = 0; i < out_s.Length; ++i)
+                    used[out_s[i]] = true;
                 raycast[r] = out_s;
             }
             return raycast;
@@ -69,8 +72,15 @@ namespace Janphe
             do
             {
                 out_s.Add(incoming);
-                incoming = s_next_s(s_opposite_s(incoming));
-            } while (incoming != first_s);
+                var oppo_s = s_opposite_s(incoming);
+                incoming = s_next_s(oppo_s);
+
+                if (out_s.includes(incoming))
+                    break;
+
+                if (out_s.Count > 20)
+                    Debug.Log($"raycast_s {first_s} {oppo_s} {incoming}");
+            } while (incoming != -1 && incoming != first_s);
             ////丢弃不能走一圈的区域
             //if (incoming == -1)
             //{

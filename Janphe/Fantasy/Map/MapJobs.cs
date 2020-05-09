@@ -17,6 +17,7 @@ namespace Janphe.Fantasy.Map
         public MapJobs()
         {
             initOptions();
+            initFonts();
             initLayers();
         }
 

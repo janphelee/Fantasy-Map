@@ -89,6 +89,7 @@
   <ItemGroup>
     <Compile Include="Janphe\Core\PolyLabel.cs" />
     <Compile Include="Janphe\Core\TinyQueue.cs" />
+    <Compile Include="Janphe\Core\Utils.Svg.cs" />
     <Compile Include="Janphe\D3\color\color.cs" />
     <Compile Include="Janphe\Fantasy\Map\MapJobs.Gui.cs" />
     <Compile Include="Janphe\Fantasy\Map\MapJobs.Draw.Relief_Icons.cs" />
@@ -160,9 +161,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Janphe\Fantasy\Story\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Janphe\Core\polylabel.js" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\SkiaSharp.1.68.1.1\build\net45\SkiaSharp.targets" Condition="Exists('packages\SkiaSharp.1.68.1.1\build\net45\SkiaSharp.targets')" />

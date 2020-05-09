@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Numerics;
 using ImGuiNET;
+using SkiaSharp;
 
 namespace Janphe.Fantasy.Map
 {
@@ -70,7 +73,8 @@ namespace Janphe.Fantasy.Map
         private void initLayers()
         {
             layersOn[(int)Layers.opt_layers_texture] = true;
-            layersOn[(int)Layers.opt_layers_heightmap] = true;
+            layersOn[(int)Layers.opt_layers_states] = true;
+            layersOn[(int)Layers.opt_layers_labels] = true;
 
             cellsOn[(int)Cells.cells_region] = true;
             cellsOn[(int)Cells.cells_side] = true;
@@ -86,6 +90,26 @@ namespace Janphe.Fantasy.Map
             drawTabs[(int)Tabs.opt_about] = drawTabAbout;
         }
 
+        private static readonly string[] fonts = {
+            "AlmendraSC-Regular.ttf"
+        };
+        private Dictionary<string, SKTypeface> faces = new Dictionary<string, SKTypeface>();
+
+        private void initFonts()
+        {
+            fonts.forEach(s =>
+            {
+                var file = new Godot.File();
+                file.Open($"res://fonts/{s}", Godot.File.ModeFlags.Read);
+                var buf = file.GetBuffer((int)file.GetLen());
+                file.Dispose();
+
+                var data = SKData.CreateCopy(buf);
+                faces[s] = SKTypeface.FromData(data);
+                data.Dispose();
+            });
+        }
+        private SKTypeface getFace(string s) => faces.ContainsKey(s) ? faces[s] : null;
 
         public void OnGui(Gui gui, ref bool needUpdate)
         {

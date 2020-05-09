@@ -10,13 +10,14 @@ namespace Janphe
         {
             public double x, y, h, d, max;
 
-            public Cell(double x, double y, double h, double[][][] polygon)
+            public Cell(double _x, double _y, double _h, double[][][] polygon)
             {
-                this.x = x;
-                this.y = y;
-                this.h = h;
-                this.d = pointToPolygonDist(x, y, polygon);
-                this.max = this.d + this.h * Math.Sqrt(2.0);
+                x = _x;
+                y = _y;
+                h = _h;
+
+                d = pointToPolygonDist(_x, _y, polygon);
+                max = d + h * Math.Sqrt(2.0);
             }
         }
         public static double[] polylabel(double[][][] polygon, double precision = 1.0, bool debug = false)

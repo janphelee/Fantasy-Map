@@ -69,7 +69,6 @@ namespace Janphe.Fantasy.Map
             if (isLayersOn(Layers.opt_layers_states))
             {
                 map6BurgsAndStates.drawStates(canvas);
-                map6BurgsAndStates.drawStateLabels(canvas);
             }
 
             if (isLayersOn(Layers.opt_layers_relief))
@@ -77,6 +76,17 @@ namespace Janphe.Fantasy.Map
 
             if (isLayersOn(Layers.opt_layers_cells))
                 drawCells(canvas);
+
+
+            if (isLayersOn(Layers.opt_layers_borders))
+            {
+
+
+            }
+            if (isLayersOn(Layers.opt_layers_labels))
+            {
+                map6BurgsAndStates.drawStateLabels(canvas, getFace);
+            }
         }
 
         private float urbanization = 1;

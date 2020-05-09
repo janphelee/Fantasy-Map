@@ -93,6 +93,16 @@ namespace Janphe
         }
         public static SKColor SK(this Color color) => new SKColor(color.r8, color.g8, color.b8, color.a8);
 
+        public static SKPoint SK(this double[] p) => new SKPoint((float)p[0], (float)p[1]);
+        public static SKPoint Multiply(this SKPoint p, float a) => new SKPoint(p.X * a, p.Y * a);
+        public static SKPoint Normalize(this SKPoint p)
+        {
+            var x = p.X;
+            var y = p.Y;
+            var z = (float)Math.Sqrt(x * x + y * y);
+            return new SKPoint(x / z, y / z);
+        }
+
         /// <summary>
         /// Extracts the hex digits from the string.
         /// </summary>

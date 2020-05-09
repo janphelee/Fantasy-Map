@@ -157,6 +157,9 @@ namespace Janphe.Fantasy.Map
             burgs.defineStateForms();
             burgs.generateProvinces();
             burgs.defineBurgFeatures();
+
+            burgs.generateStates();
+            burgs.generateStateLabels();
             Debug.Log($"20 Map6Religions.generate: {elapsed(watcher)}ms");
         }
 

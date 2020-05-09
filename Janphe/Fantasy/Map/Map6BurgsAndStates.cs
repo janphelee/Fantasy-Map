@@ -437,21 +437,6 @@ namespace Janphe.Fantasy.Map
             }
         }
 
-        public void defineBurgFeatures()
-        {
-            pack.burgs.filter(b => null != b && 0 != b.i && !b.removed).forEach(b =>
-               {
-                   var pop = b.population;
-                   b.citadel = 0 != b.capital || pop > 50 && P(.75) || P(.5) ? (byte)1 : (byte)0;
-                   b.plaza = pop > 50 || pop > 30 && P(.75) || pop > 10 && P(.5) || P(.25) ? (byte)1 : (byte)0;
-                   b.walls = 0 != b.capital || pop > 30 || pop > 20 && P(.75) || pop > 10 && P(.5) || P(.2) ? (byte)1 : (byte)0;
-                   b.shanty = pop > 30 || pop > 20 && P(.75) || 0 != b.walls && P(.75) ? (byte)1 : (byte)0;
-                   var religion = pack.cells.religion[b.cell];
-                   var theocracy = pack.states[b.state].form == "Theocracy";
-                   b.temple = 0 != religion && theocracy || pop > 50 || pop > 35 && P(.75) || pop > 20 && P(.5) ? (byte)1 : (byte)0;
-               });
-        }
-
         private void collectStatistics()
         {
             var cells = pack.cells;
@@ -725,6 +710,9 @@ namespace Janphe.Fantasy.Map
                 chronicle.push(war.ToArray()); // add a record to diplomatical history
             }
         }
+        private void drawBurgs()
+        {
+        }
 
         // select a forms for listed or all valid states
         public void defineStateForms(List<int> list = null)
@@ -846,6 +834,21 @@ namespace Janphe.Fantasy.Map
                 }
                 return "";
             }
+        }
+
+        public void defineBurgFeatures()
+        {
+            pack.burgs.filter(b => null != b && 0 != b.i && !b.removed).forEach(b =>
+            {
+                var pop = b.population;
+                b.citadel = 0 != b.capital || pop > 50 && P(.75) || P(.5) ? (byte)1 : (byte)0;
+                b.plaza = pop > 50 || pop > 30 && P(.75) || pop > 10 && P(.5) || P(.25) ? (byte)1 : (byte)0;
+                b.walls = 0 != b.capital || pop > 30 || pop > 20 && P(.75) || pop > 10 && P(.5) || P(.2) ? (byte)1 : (byte)0;
+                b.shanty = pop > 30 || pop > 20 && P(.75) || 0 != b.walls && P(.75) ? (byte)1 : (byte)0;
+                var religion = pack.cells.religion[b.cell];
+                var theocracy = pack.states[b.state].form == "Theocracy";
+                b.temple = 0 != religion && theocracy || pop > 50 || pop > 35 && P(.75) || pop > 20 && P(.5) ? (byte)1 : (byte)0;
+            });
         }
 
         private string getFullName(State s)
@@ -1082,11 +1085,11 @@ namespace Janphe.Fantasy.Map
             });
         }
 
-        private void drawBurgs()
-        {
-        }
 
-        public void drawStates(SKCanvas canvas)
+        private string[] stateSvgs { get; set; }
+        private List<KeyValuePair<int, IEnumerable<double[]>>> labelSvgs { get; set; }
+
+        public void generateStates()
         {
             var cells = pack.cells;
             var vertices = pack.vertices;
@@ -1127,6 +1130,7 @@ namespace Janphe.Fantasy.Map
                 , "");
             }
 
+            //var msg = new List<string>();
             // find state visual center
             vArray.forEach((ar, i) =>
             {
@@ -1134,22 +1138,13 @@ namespace Janphe.Fantasy.Map
                     return;
                 var sorted = ar.sort((a, b) => b.Count() - a.Count()); // sort by points number
                 var polygon = sorted.map(p => p.ToArray()).First();//取第一个最大区域
+                //polygon.map(p => p.join(",")).forEach((p, k) => msg.push($"{i} {k} {p}"));
+
                 states[i].pole = polygon.polylabel(1.0); // pole of inaccessibility
+                //msg.push($"{states[i].pole.join(",")}");
             });
 
-            var paint = new SKPaint() { IsAntialias = true };
-            paint.Style = SKPaintStyle.Fill;
-            body.forEach((p, i) =>
-            {
-                if (p.Length <= 10)
-                    return;
-
-                paint.Color = states[i].color.ToColor().Opacity(0.4f).SK();
-                var path = SKPath.ParseSvgPathData(p);
-                if (path != null)
-                    canvas.DrawPath(path, paint);
-                //Debug.Log($"{i} {states[i].name} {states[i].color} {p}");
-            });
+            stateSvgs = body;
 
             List<int[]> connectVertices(int start, ushort t, int state)
             {
@@ -1191,36 +1186,115 @@ namespace Janphe.Fantasy.Map
                 return chain;
             }
         }
-        public void drawStateLabels(SKCanvas canvas)
+
+        public void drawStates(SKCanvas canvas)
+        {
+            var states = pack.states;
+            var body = stateSvgs;
+
+            var paint = new SKPaint() { IsAntialias = true };
+            paint.Style = SKPaintStyle.Fill;
+            body.forEach((p, i) =>
+            {
+                if (p.Length <= 10)
+                    return;
+
+                paint.Color = states[i].color.ToColor().Opacity(0.4f).SK();
+                var path = SKPath.ParseSvgPathData(p);
+                if (path != null)
+                    canvas.DrawPath(path, paint);
+                //Debug.Log($"{i} {states[i].name} {states[i].color} {p}");
+            });
+
+        }
+
+        private SKPath labelCurve(double[][] points, float width = 0)
+        {
+            var pp = points.map(p => p.SK()).ToArray();
+
+            var path = new SKPath();
+
+            if (width > 0)
+            {
+                path.AddPoly(pp, false);
+                var pm = new SKPathMeasure(path, false, 1);
+                if (pm.Length < width * 1.5f)
+                {
+                    var wrap = (width * 1.5f - pm.Length) / 2;
+
+                    var p0 = pp[1];
+                    var p1 = pp[0];
+                    var a = p1 + (p1 - (p0 + p1).Multiply(0.5f)).Normalize().Multiply(wrap);
+
+
+                    p0 = pp[pp.Length - 2];
+                    p1 = pp[pp.Length - 1];
+                    var b = p1 + (p1 - (p0 + p1).Multiply(0.5f)).Normalize().Multiply(wrap);
+
+                    pp[0] = a;
+                    pp[pp.Length - 1] = b;
+                }
+                path.Reset();
+            }
+
+            path.MoveTo(pp.First());
+
+            for (var i = 1; i < pp.Length - 1; ++i)
+            {
+                var p0 = pp[i - 1];
+                var p1 = pp[i + 0];
+                var p2 = pp[i + 1];
+
+                var a = (p0 + p1).Multiply(0.5f);
+                var b = (p2 + p1).Multiply(0.5f);
+
+                path.LineTo(a);
+                path.CubicTo(p1, p1, b);
+            }
+
+            path.LineTo(pp.Last());
+
+            return path;
+        }
+
+        public void generateStateLabels()
         {
             var cells = pack.cells;
             var states = pack.states;
             var features = pack.features;
 
-            var paths = new Dictionary<int, IEnumerable<double[]>>();
-#if false
+            var paths = new List<KeyValuePair<int, IEnumerable<double[]>>>();
+#if true
             foreach (var s in states)
             {
                 if (0 == s.i || s.removed)
                     continue;
 
+                if (s.pole == null)
+                    continue;
+
                 var used = new Dictionary<int, bool>();
                 var visualCenter = pack.findCell(s.pole[0], s.pole[1]);
                 var start_ = cells.state[visualCenter] == s.i ? visualCenter : s.center;
-                var hull = getHull(start_, s.i, s.cells / 10);
+
+                var hull = getHull(start_, s.i, s.cells / 10f);
                 var points = hull.map(v => pack.vertices.p[v]).ToList();
+
                 var delauny = PointsSelection.fromPoints(points);
                 var voronoi = new Voronoi()
                 {
                     s_triangles_r = delauny.triangles,
                     s_halfedges_s = delauny.halfedges,
                 };
+
                 var voronoiCell = new VoronoiCells(voronoi, points, points.Count);
+
                 var chain_ = connectCenters(voronoiCell.vertices, s.pole[1]);
                 var relaxed = chain_.map(i => voronoiCell.vertices.p[i]).filter((p, i) => i % 15 == 0 || i + 1 == chain_.Count);
-                paths[s.i] = relaxed;
+                var kp = new KeyValuePair<int, IEnumerable<double[]>>(s.i, relaxed);
+                paths.push(kp);
 
-                HashSet<int> getHull(int start, ushort state, int maxLake)
+                HashSet<int> getHull(int start, ushort state, float maxLake)
                 {
                     var queue = new List<int>() { start };
                     var _hull = new HashSet<int>();
@@ -1242,7 +1316,7 @@ namespace Janphe.Fantasy.Map
                             if (_hull.Count > 20 && 0 == intersected && !passableLake)
                             { _hull.Add(cells.v[q][d]); return; }
 
-                            if (used.ContainsKey(c) && used[c])
+                            if (used.ContainsKey(c))
                                 return;
                             used[c] = true;
                             queue.push(c);
@@ -1258,7 +1332,8 @@ namespace Janphe.Fantasy.Map
                     {
                         if (p[0] <= 0 || p[1] <= 0 || p[0] >= graphWidth || p[1] >= graphHeight)
                             return false; // out of the screen
-                        return used[pack.findCell(p[0], p[1])];
+                        var cell = pack.findCell(p[0], p[1]);
+                        return used.ContainsKey(cell);
                     }).ToArray();
 
                     var pointsInside = D3.range(c.p.Length).filter(i => inside[i]).ToArray();
@@ -1294,7 +1369,7 @@ namespace Janphe.Fantasy.Map
                             if (v == -1)
                                 continue;
                             var totalCost = p + (inside[v] ? 1 : 100);
-                            if ((from.ContainsKey(v) && from[v] > 0) || totalCost >= cost[v])
+                            if ((from.ContainsKey(v) && from[v] > 0) || (cost.ContainsKey(v) && totalCost >= cost[v]))
                                 continue;
                             cost[v] = totalCost;
                             from[v] = n;
@@ -1315,16 +1390,87 @@ namespace Janphe.Fantasy.Map
                 }
             }
 #endif
+            labelSvgs = paths;
+        }
+
+        public void drawStateLabels(SKCanvas canvas, Func<string, SKTypeface> faceFunc)
+        {
+            var states = pack.states;
+            var paths = labelSvgs;
 
             var paint = new SKPaint() { IsAntialias = true };
-            paint.Color = SKColors.Red;
-            states.ForEach(s =>
+            paint.Typeface = faceFunc("AlmendraSC-Regular.ttf");
+            paint.TextAlign = SKTextAlign.Center;
+            paint.Color = SKColors.Black;
+
+            paint.TextSize = 22;//默认字体大小
+            var letterLength = paint.MeasureText("Average") / 7;
+
+            paths.ForEach(pp =>
             {
-                if (s == null || s.pole == null)
-                    return;
-                canvas.DrawText(s.name, (float)s.pole[0], (float)s.pole[1], paint);
+                var s = states[pp.Key];
+                var points = pp.Value.ToArray();
+
+                var path = SKPath.ParseSvgPathData(lineGen1(points));
+                var pathMeasure = new SKPathMeasure(path, false, 1);
+
+                var pathLength = points.Length > 1 ? pathMeasure.Length / letterLength : 0;
+
+
+                string[] lines;
+                var ratio = 100f;
+
+                if (pathLength < s.name.Length)
+                {
+                    // only short name will fit
+                    lines = splitInTwo(s.name);
+                    ratio = Math.Max(Math.Min((int)rn(pathLength / lines[0].Length * 60), 150), 50);
+                }
+                else if (pathLength > s.fullName.Length * 2.5)
+                {
+                    // full name will fit in one line
+                    lines = new string[] { s.fullName };
+                    ratio = Math.Max(Math.Min((int)rn(pathLength / lines[0].Length * 70), 170), 70);
+                }
+                else
+                {
+                    // try miltilined label
+                    lines = splitInTwo(s.fullName);
+                    ratio = Math.Max(Math.Min((int)rn(pathLength / lines[0].Length * 60), 150), 70);
+                }
+
+                // prolongate path if it's too short
+                if (pathLength > 0 && pathLength < lines[0].Length)
+                {
+                    double[] f = points[0], l = points[points.Length - 1];
+                    double dx = l[0] - f[0], dy = l[1] - f[1];
+                    double mod = Math.Abs(letterLength * lines[0].Length / dx) / 2;
+                    points[0] = new double[] { rn(f[0] - dx * mod), rn(f[1] - dy * mod) };
+                    points[points.Length - 1] = new double[] { rn(l[0] + dx * mod), rn(l[1] + dy * mod) };
+
+                    // textPath.attr("d", round(lineGen(points)));
+                    path = SKPath.ParseSvgPathData(lineGen1(points));
+                }
+
+                // example.attr("font-size", ratio+"%");// states font size 22px
+                paint.TextSize = ratio * 22 / 100;
+                paint.Style = SKPaintStyle.Fill;
+
+                var top = (lines.Length - 1) / -2f;
+                lines.forEach((l, i) =>
+                {
+                    canvas.DrawTextOnPath(l, path, 0, 22 * i * top, paint);
+                });
+
+                paint.Style = SKPaintStyle.Stroke;
+                canvas.DrawPath(path, paint);
+                canvas.DrawCircle(points.First().SK(), 2, paint);
+                canvas.DrawCircle(points.Last().SK(), 2, paint);
+
             });
+
         }
+
         public void drawBorders() { }
     }
 }

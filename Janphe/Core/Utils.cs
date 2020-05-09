@@ -290,6 +290,35 @@ namespace Janphe
             return trimVowels(str) + "ian";
         }
 
+        // split string into 2 almost equal parts not breaking words
+        public static string[] splitInTwo(string str)
+        {
+            var half = str.Length / 2f;
+            var ar = str.split(" ");
+            if (ar.Length < 2)
+                return ar; // only one word
+            string first = "", last = "", middle = "", rest = "";
+
+            ar.forEach((w, d) =>
+            {
+                if (d + 1 != ar.Length)
+                    w += " ";
+                rest += w;
+                if (string.IsNullOrEmpty(first) || rest.Length < half)
+                    first += w;
+                else if (string.IsNullOrEmpty(middle))
+                    middle = w;
+                else
+                    last += w;
+            });
+
+            if (string.IsNullOrEmpty(last))
+                return new string[] { first, middle };
+            if (first.Length < last.Length)
+                return new string[] { first + middle, last };
+            return new string[] { first, middle + last };
+        }
+
         public static Color HSL2RGB(float h, float s, float l, float a = 1)
         {
             float r, g, b;
