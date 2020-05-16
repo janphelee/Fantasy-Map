@@ -35,7 +35,8 @@ namespace Janphe
         public static string getMixedColor(string color, double mix = .2, double bright = .3)
         {
             var c = (!string.IsNullOrEmpty(color) && color[0] == '#') ? color : getRandomColor();
-            return D3.interpolate(c, getRandomColor())(mix).brighter((float)bright).hex();
+            var d = getRandomColor();
+            return D3.interpolate(c, d)(mix).brighter((float)bright).hex();
         }
 
     }

@@ -36,6 +36,8 @@ namespace Janphe.Fantasy.Map
 
         public void generate()
         {
+            //var msg = new List<string>();
+
             var cells = pack.cells;
             var states = pack.states;
             var cultures = pack.cultures;
@@ -55,6 +57,8 @@ namespace Janphe.Fantasy.Map
                 var deity = form == "Animism" ? null : getDeityName(c.i);
                 var color = Utils.getMixedColor(c.color, .1, 0); // `url(#hatch${rand(8,13)})`;
                 religions.push(new Religion { i = c.i, name = name, color = color, culture = c.i, type = "Folk", form = form, deity = deity, center = c.center, origin = 0 });
+
+                //msg.push($"{c.i} {form} {name} {deity} {color} {c.color}");
             });
             if (religionsInput == 0 || cultures.Length < 2)
             {
@@ -72,6 +76,7 @@ namespace Janphe.Fantasy.Map
             var cultsCount = Math.Floor(Utils.rand(10, 40) / 100d * religionsInput);
             var count = religionsInput - cultsCount + religions.Count;
 
+            //msg.push($"count:{count} religionsInput:{religionsInput} cultsCount:{cultsCount} religions.Count:{religions.Count}");
             // generate organized religions
             for (var i = 0; religions.Count < count && i < 1000; i++)
             {
@@ -126,6 +131,9 @@ namespace Janphe.Fantasy.Map
                     origin = origin
                 });
                 religionsTree.add(new D3.Quadtree.Value(x, y, center));
+
+                //msg.push($"{i} name:{name} color:{color} culture:{culture} form:{form} deity:{deity}");
+                //msg.push($"expansion:{expansion} expansionism:{expansionism} {center} {origin}");
             }
 
             // generate cults 膜拜, 礼拜式, 祭仪, 一群信徒
@@ -165,6 +173,9 @@ namespace Janphe.Fantasy.Map
                 });
                 religionsTree.add(new D3.Quadtree.Value(x, y, center));
                 //debug.append("circle").attr("cx", x).attr("cy", y).attr("r", 2).attr("fill", "red");
+
+                //msg.push($"{i} name:{name} color:{color} culture:{culture} form:{form} deity:{deity}");
+                //msg.push($"expansion:{"global"} expansionism:{expansionism} {center} {origin}");
             }
 
             expandReligions(religions);
@@ -183,7 +194,7 @@ namespace Janphe.Fantasy.Map
                     if (0 == cells.burg[center] && cells.c[center].some(c => 0 != cells.burg[c]))
                         center = cells.c[center].find(c => 0 != cells.burg[c]);
                     double x = cells.p[center][0], y = cells.p[center][1];
-                    if (religionsTree.find(x, y, spacing / 10) != null)
+                    if (religionsTree.find(x, y, spacing / 10d) != null)
                         continue; // to close to other
 
                     var culture = cells.culture[center];
@@ -206,11 +217,16 @@ namespace Janphe.Fantasy.Map
                     });
                     religionsTree.add(new D3.Quadtree.Value(x, y, center));
                     //debug.append("circle").attr("cx", x).attr("cy", y).attr("r", 2).attr("fill", "green");
+
+                    //msg.push($"{i} name:{name} color:{color} culture:{culture} form:{r.form} deity:{r.deity}");
+                    //msg.push($"expansion:{"global"} expansionism:{expansionism} {center} {r.i}");
                 }
             });
 
             expandHeresies(religions);
             checkCenters(religions);
+
+            //Debug.SaveArray("Map6Religions.generate.txt", msg);
         }
 
         public void add(int center)

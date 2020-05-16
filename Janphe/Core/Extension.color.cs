@@ -11,22 +11,37 @@ namespace Janphe
         private static readonly float Darker = 0.7f;
         private static readonly float Brighter = 1 / Darker;
 
+        public static Color darker(this Color color)
+        {
+            var a = color.A;
+            color *= Darker;
+            color.Opacity(a);
+            return color;
+        }
         public static Color darker(this Color color, float darker)
         {
             darker = darker == 0 ? Darker : (float)Math.Pow(Darker, darker);
 
-            var a = color.a;
+            var a = color.A;
             color *= darker;
-            color.a = a;
+            color.Opacity(a);
+            return color;
+        }
+
+        public static Color brighter(this Color color)
+        {
+            var a = color.A;
+            color *= Brighter;
+            color.Opacity(a);
             return color;
         }
         public static Color brighter(this Color color, float brighter)
         {
-            brighter = brighter == 0 ? Brighter : (float)Math.Pow(Brighter, brighter);
+            brighter = (float)Math.Pow(Brighter, brighter);
 
-            var a = color.a;
+            var a = color.A;
             color *= brighter;
-            color.a = a;
+            color.Opacity(a);
             return color;
         }
 
@@ -57,10 +72,10 @@ namespace Janphe
 
                 try
                 {
-                    byte rc = Byte.Parse(r, NumberStyles.HexNumber);
-                    byte gc = Byte.Parse(g, NumberStyles.HexNumber);
-                    byte bc = Byte.Parse(b, NumberStyles.HexNumber);
-                    color = Color.Color8(rc, gc, bc, 255);
+                    byte rc = byte.Parse(r, NumberStyles.HexNumber);
+                    byte gc = byte.Parse(g, NumberStyles.HexNumber);
+                    byte bc = byte.Parse(b, NumberStyles.HexNumber);
+                    color = new Color(rc, gc, bc, 255);
                 }
                 catch (Exception)
                 {
@@ -77,11 +92,11 @@ namespace Janphe
 
                 try
                 {
-                    byte ac = Byte.Parse(a, NumberStyles.HexNumber);
-                    byte rc = Byte.Parse(r, NumberStyles.HexNumber);
-                    byte gc = Byte.Parse(g, NumberStyles.HexNumber);
-                    byte bc = Byte.Parse(b, NumberStyles.HexNumber);
-                    color = Color.Color8(rc, gc, bc, ac);
+                    byte ac = byte.Parse(a, NumberStyles.HexNumber);
+                    byte rc = byte.Parse(r, NumberStyles.HexNumber);
+                    byte gc = byte.Parse(g, NumberStyles.HexNumber);
+                    byte bc = byte.Parse(b, NumberStyles.HexNumber);
+                    color = new Color(rc, gc, bc, ac);
                 }
                 catch (Exception)
                 {
@@ -94,6 +109,7 @@ namespace Janphe
         public static SKColor SK(this Color color) => new SKColor(color.r8, color.g8, color.b8, color.a8);
 
         public static SKPoint SK(this double[] p) => new SKPoint((float)p[0], (float)p[1]);
+
         public static SKPoint Multiply(this SKPoint p, float a) => new SKPoint(p.X * a, p.Y * a);
         public static SKPoint Normalize(this SKPoint p)
         {
@@ -110,7 +126,7 @@ namespace Janphe
         /// <returns></returns>
         private static string ExtractHexDigits(string colorString)
         {
-            Regex HexDigits = new Regex(@"[abcdefABCDEF\d]+", RegexOptions.Compiled);
+            var HexDigits = new Regex(@"[abcdefABCDEF\d]+", RegexOptions.Compiled);
 
             var hexnum = new StringBuilder();
             foreach (char c in colorString)

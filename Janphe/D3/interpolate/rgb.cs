@@ -19,20 +19,20 @@ namespace Janphe
                 {
                     color = colors[i].ToColor();
                     //Debug.Log($"{i} {colors[i]} {color}");
-                    r[i] = color.r;
-                    g[i] = color.g;
-                    b[i] = color.b;
+                    r[i] = color.R;
+                    g[i] = color.G;
+                    b[i] = color.B;
                 }
 
                 var fr = spline(r);
                 var fg = spline(g);
                 var fb = spline(b);
-                color.a = 1;
+                color.Opacity(1);
                 return t =>
                 {
-                    color.r = fr(t);
-                    color.g = fg(t);
-                    color.b = fb(t);
+                    color.R = fr(t);
+                    color.G = fg(t);
+                    color.B = fb(t);
                     return color;
                 };
             };
@@ -46,16 +46,16 @@ namespace Janphe
 
             Func<double, Color> rgb(Color start, Color end)
             {
-                var r = color(start.r, end.r);
-                var g = color(start.g, end.g);
-                var b = color(start.b, end.b);
-                var opacity = nogamma(start.a, end.a);
+                var r = color(start.R, end.R);
+                var g = color(start.G, end.G);
+                var b = color(start.B, end.B);
+                var opacity = nogamma(start.A, end.A);
                 return t =>
                 {
-                    start.r = (float)r(t);
-                    start.g = (float)g(t);
-                    start.b = (float)b(t);
-                    start.a = (float)opacity(t);
+                    start.R = (float)r(t);
+                    start.G = (float)g(t);
+                    start.B = (float)b(t);
+                    start.Opacity((float)opacity(t));
                     return start;
                 };
             }

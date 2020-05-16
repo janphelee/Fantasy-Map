@@ -25,6 +25,7 @@ namespace Janphe.Fantasy.Map
             public int i, state, center, burg;
             public string name, formName, fullName, color;
             public bool removed = false;
+            public double[] pole;
         }
         public class State
         {

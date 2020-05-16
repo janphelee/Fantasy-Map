@@ -54,8 +54,8 @@ namespace Janphe
         public static string[] split(this string d, char separator) { return d.Split(separator); }
         public static string[] split(this string d, string separator) { return d.Split(separator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries); }
 
-        public static string join<T>(this IEnumerable<T> d, string separator) => string.Join(separator, d);
-        public static string join<T>(this T[] d, string separator) => string.Join(separator, d);
+        public static string join<T>(this IEnumerable<T> d, string separator = ",") => string.Join(separator, d);
+        public static string join<T>(this T[] d, string separator = ",") => string.Join(separator, d);
         public static string join<T>(this T[][] d, string s1, string s2) => d.map(t => t.join(s2)).join(s1);
         public static string Str<T>(this T[] d, string separator = " ") => d.join(separator);
 

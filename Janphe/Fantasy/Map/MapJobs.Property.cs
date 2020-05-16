@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Janphe.Fantasy.Map
 {
@@ -27,5 +30,51 @@ namespace Janphe.Fantasy.Map
             new Style{ name="sea_island", opacity=0.5f, stroke="#1f3846", strokeWidth=0.7f, filter="dropShadow", autoFilter=true },
             new Style{ name="lake_island", opacity=1f, stroke="#7c8eaf", strokeWidth=0.35f},
         };
+
+
+        internal List<int[]> connectVertices(int start, ushort p0, ushort p1, ushort[] pp, BitArray used)
+        {
+            var cells = pack.cells;
+            var vertices = pack.vertices;
+            var n = cells.i.Length;
+
+            var chain = new List<int[]>();
+
+            var land = vertices.c[start].some(c => cells.h[c] >= 20 && pp[c] != p0);
+            void check(int i)
+            { p1 = pp[i]; land = cells.h[i] >= 20; }
+
+            for (int i = 0, current = start; i == 0 || current != start && i < 20000; i++)
+            {
+                var prev = chain.Count > 0 ? chain.Last()[0] : -1;
+                chain.push(new int[] { current, p1, land ? 1 : 0 }); // add current vertex to sequence
+                var c = vertices.c[current]; // cells adjacent to vertex
+                c.filter(ci => pp[ci] == p0).forEach(ci => used[ci] = true);
+                var c0 = c[0] >= n || pp[c[0]] != p0;
+                var c1 = c[1] >= n || pp[c[1]] != p0;
+                var c2 = c[2] >= n || pp[c[2]] != p0;
+                var v = vertices.v[current]; // neighboring vertices
+                if (v[0] != prev && c0 != c1)
+                {
+                    current = v[0];
+                    check(c0 ? c[0] : c[1]);
+                }
+                else if (v[1] != prev && c1 != c2)
+                {
+                    current = v[1];
+                    check(c1 ? c[1] : c[2]);
+                }
+                else if (v[2] != prev && c0 != c2)
+                {
+                    current = v[2];
+                    check(c2 ? c[2] : c[0]);
+                }
+                if (current == chain[chain.Count - 1][0])
+                { Debug.Log("Next vertex is not found"); break; }
+            }
+            chain.push(new int[] { start, p1, land ? 1 : 0 }); // add starting vertex to sequence to close the path
+            return chain;
+        }
+
     }
 }

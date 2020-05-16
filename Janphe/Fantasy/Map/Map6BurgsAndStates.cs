@@ -46,6 +46,9 @@ namespace Janphe.Fantasy.Map
             graphHeight = map.Options.Height;
         }
 
+        private List<int[]> capitalRoutes;
+        private List<int[]> townRoutes;
+        private List<int[]> oceanRoutes;
         // temporary elevate some lakes to resolve depressions and flux the water to form an open (exorheic) lake
         public void generate()
         {
@@ -62,7 +65,11 @@ namespace Janphe.Fantasy.Map
             //Debug.SaveArray("pack.burgs.txt", pack.burgs.map(s => s == null ? "" : $"{'{'}'cell':{s.cell},'x':{s.x},'y':{s.y},'state':{s.state},'i':{s.i},'culture':{s.culture},'name':'{s.name}','feature':{s.feature},'capital':{s.capital}{'}'}"));
             //Debug.SaveArray("pack.states.txt", pack.states.map(s => s == null ? "" : $"{'{'}'i':{s.i},'color':'{s.color}','name':'{s.name}','expansionism':{s.expansionism},'capital':{s.capital},'type':'{s.type}','center':{s.center},'culture':{s.culture}{'}'}"));
 
+            var msg = new List<string>();
+
             var capitalRoutes = Routes.getRoads();
+            msg.push($"Routes.getRoads {Random.NextDouble()}");
+            capitalRoutes.forEach(rr => msg.push(rr.join(",")));
 
             placeTowns();
             expandStates();
@@ -71,18 +78,32 @@ namespace Janphe.Fantasy.Map
             //Debug.SaveArray("pack.states.txt", pack.states.map(s => s == null ? "" : $"{'{'}'i':{s.i},'color':'{s.color}','name':'{s.name}','expansionism':{s.expansionism},'capital':{s.capital},'type':'{s.type}','center':{s.center},'culture':{s.culture}{'}'}"));
 
             var townRoutes = Routes.getTrails();
+            msg.push($"Routes.getTrails {Random.NextDouble()}");
+            townRoutes.forEach(rr => msg.push(rr.join(",")));
 
             specifyBurgs();
 
             var oceanRoutes = Routes.getSearoutes();
+            msg.push($"Routes.getSearoutes {Random.NextDouble()}");
+            oceanRoutes.forEach(rr => msg.push(rr.join(",")));
 
             collectStatistics();
+            msg.push($"collectStatistics {Random.NextDouble()}");
             assignColors();
+            msg.push($"assignColors {Random.NextDouble()}");
 
             generateDiplomacy();
+            msg.push($"generateDiplomacy {Random.NextDouble()}");
 
-            Routes.draw(capitalRoutes, townRoutes, oceanRoutes);
-            drawBurgs();
+            //Routes.draw(capitalRoutes, townRoutes, oceanRoutes);
+            this.capitalRoutes = capitalRoutes;
+            this.townRoutes = townRoutes;
+            this.oceanRoutes = oceanRoutes;
+            msg.push($"Routes.draw {Random.NextDouble()}");
+            //drawBurgs();
+            msg.push($"drawBurgs {Random.NextDouble()}");
+
+            Debug.SaveArray("Map6BurgsAndStates.generate.txt", msg);
         }
         private List<Burg> placeStateCapitals()
         {
@@ -539,6 +560,7 @@ namespace Janphe.Fantasy.Map
                 return; // no states to renerate relations with
             var areaMean = D3.mean(valid.map(s => (int)s.area)); // avarage state area
 
+            //var msg = new List<string>();
             // generic relations
             for (var f = 1; f < states.Count; f++)
             {
@@ -583,18 +605,18 @@ namespace Janphe.Fantasy.Map
 
                     var naval = states[f].type == "Naval" && states[t].type == "Naval" && cells.f[states[f].center] != cells.f[states[t].center];
                     var neib = naval ? false : states[f].neighbors.includes((ushort)t);
-                    //var neibOfNeib = naval || neib ? false : states[f].neighbors.map(n => states[n].neighbors).join().includes(t);
-                    var neibOfNeib = naval || neib ? false : states[f].neighbors.map(n => states[n].neighbors).ToArray().some(s => s.includes((ushort)t));
+                    var neibOfNeib = naval || neib ? false : states[f].neighbors.some(n => states[n].neighbors.includes((ushort)t));
 
                     var status = naval ? rw(navals) :
                         neib ? rw(neibs) :
                         neibOfNeib ? rw(neibsOfNeibs) : rw(far);
 
                     // add Vassal
-                    if (neib && P(.8) && states[f].area > areaMean && states[t].area < areaMean && states[f].area / states[t].area > 2)
+                    if (neib && P(.8) && states[f].area > areaMean && states[t].area < areaMean && (float)states[f].area / states[t].area > 2)
                         status = "Vassal";
                     states[f].diplomacy[t] = status == "Vassal" ? "Suzerain" : status;
                     states[t].diplomacy[f] = status;
+                    //msg.push($"{f} {t} {status} {naval} {neib} {neibOfNeib} {states[f].area} {states[t].area} {(float)states[f].area / states[t].area > 2}");
                 }
             }
 
@@ -708,10 +730,10 @@ namespace Janphe.Fantasy.Map
                 // change relations to Enemy for all participants
                 attackers.forEach(a => defenders.forEach(d => states[a].diplomacy[d] = states[d].diplomacy[a] = "Enemy"));
                 chronicle.push(war.ToArray()); // add a record to diplomatical history
+                //msg.push(war.join("\n"));
             }
-        }
-        private void drawBurgs()
-        {
+
+            //Debug.SaveArray("generateDiplomacy.txt", msg);
         }
 
         // select a forms for listed or all valid states
@@ -740,11 +762,13 @@ namespace Janphe.Fantasy.Map
             var republic = JObject.Parse(@"{ Republic:70, Federation: 2, Oligarchy: 2, Tetrarchy: 1, Triumvirate: 1, Diarchy: 1, 'Trade Company':3}").dict(); // weighted random
             var union = JObject.Parse(@"{ Union:3, League:4, Confederation:1, 'United Kingdom':1, 'United Republic':1, 'United Provinces':2, Commonwealth:1, Heptarchy:1 }").dict(); // weighted random
 
+            //var msg = new List<string>();
             foreach (var s in states)
             {
                 if (null != list && !list.includes(s.i))
                     continue;
 
+                //msg.push($"{s.type} {expTiers[s.i]} {Random.NextDouble()}");
                 // some nomadic states
                 if (s.type == "Nomadic" && P(.8))
                 {
@@ -759,7 +783,10 @@ namespace Janphe.Fantasy.Map
                 s.form = theocracy ? "Theocracy" : s.type == "Naval" ? ra(navalArray) : ra(genericArray);
                 s.formName = selectForm(s);
                 s.fullName = getFullName(s);
+
+                //msg.push($"{s.i} name:{s.name} form:{s.form} {s.formName} full:{s.fullName}");
             }
+            //Debug.SaveArray("defineStateForms.txt", msg);
 
             string selectForm(State s)
             {
@@ -864,8 +891,11 @@ namespace Janphe.Fantasy.Map
 
         public void generateProvinces(bool regenerate = false)
         {
+            //var msg = new List<string>();
+
             var localSeed = regenerate ? (int)Math.Floor(Random.NextDouble() * 1e9) : map.Options.MapSeed;
             Random.Seed(localSeed);
+            //msg.push($"localSeed:{localSeed} ProvincesInput:{map.Options.ProvincesInput} {Random.NextDouble()}");
 
             var cells = pack.cells;
             var states = pack.states;
@@ -876,6 +906,7 @@ namespace Janphe.Fantasy.Map
             if (states.Count < 2 || 0 == percentage)
             { states.forEach(s => s.provinces = new List<ushort>()); return; } // no provinces
             var max = percentage == 100 ? 1000 : gauss(20, 5, 5, 100) * percentage.pow(.5); // max growth
+            //msg.push($"{max} {Random.NextDouble()}");
 
             var forms = JObject.Parse(@"{
               Monarchy:{County:11, Earldom:3, Shire:1, Landgrave:1, Margrave:1, Barony:1},
@@ -892,12 +923,26 @@ namespace Janphe.Fantasy.Map
                 s.provinces = new List<ushort>();
                 if (0 == s.i || s.removed)
                     return;
-                var stateBurgs = burgs.filter(b => b.state == s.i && !b.removed).sort((a, b) => (b.population * gauss(1, .2, .5, 1.5, 3)).CompareTo(a.population)).ToArray();
+                var startBurgs = burgs.filter(b => b != null && b.state == s.i && !b.removed);
+
+                Burg[] stateBurgs;
+                try
+                {
+                    stateBurgs = startBurgs.ToArray().SortTim(
+                        (a, b) => (b.population * gauss(1, .2, .5, 1.5, 3)).CompareTo(a.population)
+                    );
+                }
+                catch
+                {
+                    stateBurgs = new Burg[0];
+                }
+
                 if (stateBurgs.Length < 2)
                     return; // at least 2 provinces are required
                 var provincesNumber = Math.Max(Math.Ceiling(stateBurgs.Length * percentage / 100d), 2);
                 var form = forms[s.form].dict<int>();
 
+                //msg.push($"{s.i} {startBurgs.Count()} {provincesNumber} {Random.NextDouble()}");
                 for (var i = 0; i < provincesNumber; i++)
                 {
                     var province = (ushort)provinces.Count;
@@ -910,6 +955,7 @@ namespace Janphe.Fantasy.Map
                     form[formName] += 5;
                     var fullName = name + " " + formName;
                     var color = getMixedColor(s.color);
+
                     provinces.push(new Province
                     {
                         i = province,
@@ -921,6 +967,9 @@ namespace Janphe.Fantasy.Map
                         fullName = fullName,
                         color = color
                     });
+
+                    //msg.push($"{s.color} {color}");
+                    //msg.push($"{i} {center} {burg} {c} name:{name} formName:{formName} {form[formName]}");
                 }
             });
 
@@ -929,7 +978,7 @@ namespace Janphe.Fantasy.Map
             var cost = new Dictionary<int, double>();
             provinces.forEach(p =>
             {
-                if (0 == p.i || p.removed)
+                if ((p == null || 0 == p.i) || p.removed)
                     return;
                 cells.province[p.center] = (ushort)p.i;
                 queue.push(new Item { e = p.center, p = 0, province = p.i, state = p.state });
@@ -989,12 +1038,20 @@ namespace Janphe.Fantasy.Map
             {
                 if (0 == s.provinces.Count)
                     return;
-                var stateNoProvince = noProvince.filter(i => cells.state[i] == s.i && 0 == cells.province[i]);
+                var stateNoProvince = noProvince.filter(i => cells.state[i] == s.i && 0 == cells.province[i])
+                    // IEnumerable不能多次使用，所以转成数组
+                    .ToArray();
+                //msg.push($"stateNoProvince:{stateNoProvince.join()}");
                 while (stateNoProvince.Count() > 0)
                 {
                     // add new province
                     var province = (ushort)provinces.Count;
-                    var burgCell = stateNoProvince.find(i => 0 != cells.burg[i]);
+                    int burgCell;
+                    try
+                    { burgCell = stateNoProvince.find(i => 0 != cells.burg[i]); }
+                    catch
+                    { burgCell = 0; }
+
                     var center = 0 != burgCell ? burgCell : stateNoProvince.First();
                     var burg = 0 != burgCell ? cells.burg[burgCell] : 0;
                     cells.province[center] = province;
@@ -1009,6 +1066,7 @@ namespace Janphe.Fantasy.Map
                         var n = next.e;
                         var p = next.p;
 
+                        //msg.push($"queue.pop {center} {province} n:{n} p:{p} {queue.Count}");
                         cells.c[n].forEach(e =>
                         {
                             if (0 != cells.province[e])
@@ -1023,10 +1081,12 @@ namespace Janphe.Fantasy.Map
                                 return;
                             if (!cost.ContainsKey(e) || totalCost < cost[e])
                             {
+                                //msg.push($"land && cells.state[e] == s.i {land} {cells.state[e]} {s.i}");
                                 if (land && cells.state[e] == s.i)
                                     cells.province[e] = province; // assign province to a cell
                                 cost[e] = totalCost;
                                 queue.push(new Item { e = e, p = totalCost });
+                                //msg.push($"queue.push e:{e} p:{totalCost} {queue.Count}");
                             }
                         });
                     }
@@ -1036,6 +1096,11 @@ namespace Janphe.Fantasy.Map
                     var name = 0 != burgCell && P(.5) ? burgs[burg].name : Names.getState(Names.getCultureShort(c), c);
                     var f = pack.features[cells.f[center]];
                     var provCells = stateNoProvince.filter(i => cells.province[i] == province);
+                    //if (119 == province)
+                    //{
+                    //msg.push(stateNoProvince.join());
+                    //msg.push(stateNoProvince.map(i => cells.province[i]).join());
+                    //}
                     var singleIsle = provCells.Count() == f.cells && !provCells.finded(i => cells.f[i] != f.i);
                     var isleGroup = !singleIsle && !provCells.finded(i => pack.features[cells.f[i]].group != "isle");
                     var colony = !singleIsle && !isleGroup && P(.5) && !isPassable(s.center, center);
@@ -1054,6 +1119,10 @@ namespace Janphe.Fantasy.Map
                         color = color
                     });
                     s.provinces.push(province);
+
+                    //msg.push($"provCells:{provCells.join()} {singleIsle} {isleGroup} {colony} {fullName}");
+                    //msg.push($"{s.color} {color}");
+                    //msg.push($"{province} {center} {burg} {c} name:{name} formName:{formName}");
 
                     // check if there is a land way within the same state between two cells
                     bool isPassable(int from, int to)
@@ -1080,16 +1149,26 @@ namespace Janphe.Fantasy.Map
                     }
 
                     // re-check
-                    stateNoProvince = noProvince.filter(i => cells.state[i] == s.i && 0 == cells.province[i]);
+                    stateNoProvince = noProvince.filter(i => cells.state[i] == s.i && 0 == cells.province[i])
+                        .ToArray();
+                    //msg.push($"re-check stateNoProvince:{stateNoProvince.join()}");
                 }
             });
+
+            //provinces.forEach(p =>
+            //{
+            //    if (p != null)
+            //        msg.push($"provinces {p.i} {p.state} {p.center} {p.burg} {p.name} {p.formName} {p.fullName} {p.color}");
+            //});
+
+            //Debug.SaveArray("generateProvinces.txt", msg);
         }
 
 
         private string[] stateSvgs { get; set; }
         private List<KeyValuePair<int, IEnumerable<double[]>>> labelSvgs { get; set; }
 
-        public void generateStates()
+        internal void generateStatesPath()
         {
             var cells = pack.cells;
             var vertices = pack.vertices;
@@ -1112,7 +1191,7 @@ namespace Janphe.Fantasy.Map
                     continue;
                 var borderWith = cells.c[i].map(ci => cells.state[ci]).find(rc => rc != s);
                 var vertex = cells.v[i].find(v => vertices.c[v].some(cv => cells.state[cv] == borderWith));
-                var chain = connectVertices(vertex, s, borderWith);
+                var chain = map.connectVertices(vertex, s, borderWith, cells.state, used);
                 if (chain.Count < 3)
                     continue;
 
@@ -1145,116 +1224,63 @@ namespace Janphe.Fantasy.Map
             });
 
             stateSvgs = body;
-
-            List<int[]> connectVertices(int start, ushort t, int state)
-            {
-                var chain = new List<int[]>();
-
-                var land = vertices.c[start].some(c => cells.h[c] >= 20 && cells.state[c] != t);
-                void check(int i)
-                { state = cells.state[i]; land = cells.h[i] >= 20; }
-
-                for (int i = 0, current = start; i == 0 || current != start && i < 20000; i++)
-                {
-                    var prev = chain.Count > 0 ? chain.Last()[0] : -1;
-                    chain.push(new int[] { current, state, land ? 1 : 0 }); // add current vertex to sequence
-                    var c = vertices.c[current]; // cells adjacent to vertex
-                    c.filter(ci => cells.state[ci] == t).forEach(ci => used[ci] = true);
-                    var c0 = c[0] >= n || cells.state[c[0]] != t;
-                    var c1 = c[1] >= n || cells.state[c[1]] != t;
-                    var c2 = c[2] >= n || cells.state[c[2]] != t;
-                    var v = vertices.v[current]; // neighboring vertices
-                    if (v[0] != prev && c0 != c1)
-                    {
-                        current = v[0];
-                        check(c0 ? c[0] : c[1]);
-                    }
-                    else if (v[1] != prev && c1 != c2)
-                    {
-                        current = v[1];
-                        check(c1 ? c[1] : c[2]);
-                    }
-                    else if (v[2] != prev && c0 != c2)
-                    {
-                        current = v[2];
-                        check(c2 ? c[2] : c[0]);
-                    }
-                    if (current == chain[chain.Count - 1][0])
-                    { Debug.Log("Next vertex is not found"); break; }
-                }
-                chain.push(new int[] { start, state, land ? 1 : 0 }); // add starting vertex to sequence to close the path
-                return chain;
-            }
         }
 
-        public void drawStates(SKCanvas canvas)
+        private string[] provinceSvgs { get; set; }
+        internal void generateProvincesPath()
         {
-            var states = pack.states;
-            var body = stateSvgs;
+            var cells = pack.cells;
+            var vertices = pack.vertices;
+            var provinces = pack.provinces;
+            var n = cells.i.Length;
 
-            var paint = new SKPaint() { IsAntialias = true };
-            paint.Style = SKPaintStyle.Fill;
-            body.forEach((p, i) =>
+            var used = new BitArray(n);
+            var vArray = new List<IEnumerable<double[]>>[provinces.Count]; // store vertices array
+            var body = new string[provinces.Count].fill(""); // store path around each state
+            var gap = new string[provinces.Count].fill(""); // store path along water for each state to fill the gaps
+
+            foreach (var i in cells.i)
             {
-                if (p.Length <= 10)
-                    return;
+                if (0 == cells.province[i] || used[i])
+                    continue;
 
-                paint.Color = states[i].color.ToColor().Opacity(0.4f).SK();
-                var path = SKPath.ParseSvgPathData(p);
-                if (path != null)
-                    canvas.DrawPath(path, paint);
-                //Debug.Log($"{i} {states[i].name} {states[i].color} {p}");
+                var p = cells.province[i];
+                var onborder = cells.c[i].filter(ci => cells.province[ci] != p);
+                if (0 == onborder.Count())
+                    continue;
+                var borderWith = cells.c[i].map(n2 => cells.province[n2]).find(n2 => n2 != p);
+                var vertex = cells.v[i].find(v => vertices.c[v].some(n2 => cells.province[n2] == borderWith));
+                var chain = map.connectVertices(vertex, p, borderWith, cells.province, used);
+                if (chain.Count < 3)
+                    continue;
+
+                var points = chain.map(v => vertices.p[v[0]]);
+
+                if (vArray[p] == null)
+                    vArray[p] = new List<IEnumerable<double[]>>();
+                vArray[p].push(points);
+
+                body[p] += "M" + points.map(pt => pt.join(",")).join("L");
+                gap[p] += "M" + vertices.p[chain[0][0]].join(",") + chain.reduce((str, v, vi, d) =>
+                  0 == vi ? str :
+                  0 == v[2] ? str + "L" + vertices.p[v[0]].join(",") :
+                  null != d[vi + 1] && 0 == d[vi + 1][2] ? str + "M" + vertices.p[v[0]].join(",") : str
+                , "");
+            }
+
+            //var msg = new List<string>();
+            // find state visual center
+            vArray.forEach((ar, i) =>
+            {
+                if (ar == null)
+                    return;
+                var sorted = ar.sort((a, b) => b.Count() - a.Count()); // sort by points number
+                var polygon = sorted.map(p => p.ToArray()).First();//取第一个最大区域
+
+                provinces[i].pole = polygon.polylabel(1.0); // pole of inaccessibility
             });
 
-        }
-
-        private SKPath labelCurve(double[][] points, float width = 0)
-        {
-            var pp = points.map(p => p.SK()).ToArray();
-
-            var path = new SKPath();
-
-            if (width > 0)
-            {
-                path.AddPoly(pp, false);
-                var pm = new SKPathMeasure(path, false, 1);
-                if (pm.Length < width * 1.5f)
-                {
-                    var wrap = (width * 1.5f - pm.Length) / 2;
-
-                    var p0 = pp[1];
-                    var p1 = pp[0];
-                    var a = p1 + (p1 - (p0 + p1).Multiply(0.5f)).Normalize().Multiply(wrap);
-
-
-                    p0 = pp[pp.Length - 2];
-                    p1 = pp[pp.Length - 1];
-                    var b = p1 + (p1 - (p0 + p1).Multiply(0.5f)).Normalize().Multiply(wrap);
-
-                    pp[0] = a;
-                    pp[pp.Length - 1] = b;
-                }
-                path.Reset();
-            }
-
-            path.MoveTo(pp.First());
-
-            for (var i = 1; i < pp.Length - 1; ++i)
-            {
-                var p0 = pp[i - 1];
-                var p1 = pp[i + 0];
-                var p2 = pp[i + 1];
-
-                var a = (p0 + p1).Multiply(0.5f);
-                var b = (p2 + p1).Multiply(0.5f);
-
-                path.LineTo(a);
-                path.CubicTo(p1, p1, b);
-            }
-
-            path.LineTo(pp.Last());
-
-            return path;
+            provinceSvgs = body;
         }
 
         public void generateStateLabels()
@@ -1393,8 +1419,258 @@ namespace Janphe.Fantasy.Map
             labelSvgs = paths;
         }
 
+
+        private SKPath stateBorders;
+        private SKPath provinceBorders;
+
+        public void generateBorders()
+        {
+            var cells = pack.cells;
+            var vertices = pack.vertices;
+            var n = cells.i.Length;
+
+            SKPath sPath = new SKPath(), pPath = new SKPath();
+            var sUsed = pack.states.map(s => new ushort[n]).ToArray();
+            var pUsed = pack.provinces.map(p => new ushort[n]).ToArray();
+
+            for (var i = 0; i < cells.i.Length; ++i)
+            {
+                if (0 == cells.state[i])
+                    continue;
+
+                var p = cells.province[i];
+                var s = cells.state[i];
+
+                // if cell is on province border
+                var pidx = cells.c[i].findIndex(n2 => cells.state[n2] == s && p > cells.province[n2] && pUsed[p][n2] != cells.province[n2]);
+                if (pidx != -1)
+                {
+                    var provToCell = cells.c[i][pidx];
+                    var provTo = cells.province[provToCell];
+                    pUsed[p][provToCell] = provTo;
+                    var vertex = cells.v[i].find(v => vertices.c[v].some(n2 => cells.province[n2] == provTo));
+                    var chain = connectVertices(vertex, p, cells.province, provTo, pUsed);
+
+                    if (chain.Count > 1)
+                    {
+                        var path = linePoly(chain.map(c => vertices.p[c].SK()), false);
+                        pPath.AddPath(path);
+                        i--;
+                        continue;
+                    }
+                }
+
+                // if cell is on state border
+                var sidx = cells.c[i].findIndex(n2 => cells.h[n2] >= 20 && s > cells.state[n2] && sUsed[s][n2] != cells.state[n2]);
+                if (sidx != -1)
+                {
+                    var stateToCell = cells.c[i][sidx];
+                    var stateTo = cells.state[stateToCell];
+                    sUsed[s][stateToCell] = stateTo;
+                    var vertex = cells.v[i].find(v => vertices.c[v].some(n2 => cells.h[n2] >= 20 && cells.state[n2] == stateTo));
+                    var chain = connectVertices(vertex, s, cells.state, stateTo, sUsed);
+
+                    if (chain.Count > 1)
+                    {
+                        var path = linePoly(chain.map(c => vertices.p[c].SK()), false);
+                        sPath.AddPath(path);
+                        i--;
+                        continue;
+                    }
+                }
+            }
+
+            stateBorders = sPath;
+            provinceBorders = pPath;
+
+            List<int> connectVertices(int current, ushort f, ushort[] array, ushort t, ushort[][] used)
+            {
+                Func<int, bool> checkCell = c => c >= n || array[c] != f;
+                Func<int, bool> checkVertex = v => vertices.c[v].some(c => array[c] == f) && vertices.c[v].some(c => array[c] == t && cells.h[c] >= 20);
+                Func<bool, int> b2i = b => b ? 1 : 0;
+
+                var chain = new List<int>();
+                // find starting vertex
+                for (var i = 0; i < 1000; i++)
+                {
+                    if (i == 999)
+                        Debug.LogError($"Find starting vertex: limit is reached {current} {f} {t}");
+                    var p = chain.Count > 1 ? chain[chain.Count - 2] : -1; // previous vertex
+                    var v = vertices.v[current];
+                    var c = vertices.c[current];
+
+                    var v0 = checkCell(c[0]) != checkCell(c[1]) && checkVertex(v[0]);
+                    var v1 = checkCell(c[1]) != checkCell(c[2]) && checkVertex(v[1]);
+                    var v2 = checkCell(c[0]) != checkCell(c[2]) && checkVertex(v[2]);
+                    if (b2i(v0) + b2i(v1) + b2i(v2) == 1)
+                        break;
+                    current = v0 && p != v[0] ? v[0] : v1 && p != v[1] ? v[1] : v[2];
+
+                    if (chain.Count > 0 && current == chain[0])
+                        break;
+                    if (current == p)
+                        return new List<int>();
+                    chain.push(current);
+                }
+
+                chain = new List<int>() { current };
+                // find path
+                for (var i = 0; i < 1000; i++)
+                {
+                    if (i == 999)
+                        Debug.LogError($"Find path: limit is reached {current} {f} {t}");
+                    var p = chain.Count > 1 ? chain[chain.Count - 2] : -1; // previous vertex
+                    var v = vertices.v[current];
+                    var c = vertices.c[current];
+                    c.filter(n2 => array[n2] == t).forEach(n2 => used[f][n2] = t);
+
+                    var v0 = checkCell(c[0]) != checkCell(c[1]) && checkVertex(v[0]);
+                    var v1 = checkCell(c[1]) != checkCell(c[2]) && checkVertex(v[1]);
+                    var v2 = checkCell(c[0]) != checkCell(c[2]) && checkVertex(v[2]);
+                    current = v0 && p != v[0] ? v[0] : v1 && p != v[1] ? v[1] : v[2];
+
+                    if (current == p)
+                        break;
+                    if (current == chain[chain.Count - 1])
+                        break;
+                    if (chain.Count > 1 && b2i(v0) + b2i(v1) + b2i(v2) < 2)
+                        break;
+                    chain.push(current);
+                    if (current == chain[0])
+                        break;
+                }
+                return chain;
+            }
+        }
+
+        public void drawStates(SKCanvas canvas)
+        {
+            var states = pack.states;
+            var body = stateSvgs;
+
+            var paint = new SKPaint() { IsAntialias = true };
+            paint.Style = SKPaintStyle.Fill;
+            body.forEach((p, i) =>
+            {
+                if (p.Length <= 10)
+                    return;
+
+                paint.Color = states[i].color.ToColor().Opacity(0.4f).SK();
+                var path = SKPath.ParseSvgPathData(p);
+                if (path != null)
+                    canvas.DrawPath(path, paint);
+                //Debug.Log($"{i} {states[i].name} {states[i].color} {p}");
+            });
+
+        }
+        public void drawProvinces(SKCanvas canvas)
+        {
+
+            var provinces = pack.provinces;
+            var body = provinceSvgs;
+
+            var paint = new SKPaint() { IsAntialias = true };
+            paint.Style = SKPaintStyle.Fill;
+            body.forEach((p, i) =>
+            {
+                if (p.Length <= 10)
+                    return;
+
+                paint.Color = provinces[i].color.ToColor().Opacity(0.4f).SK();
+                var path = SKPath.ParseSvgPathData(p);
+                if (path != null)
+                    canvas.DrawPath(path, paint);
+            });
+        }
+
+        public void drawBurgs(SKCanvas canvas, Func<string, SKTypeface> faceFunc)
+        {
+            var scale = canvas.TotalMatrix.ScaleX;
+
+            var text_capitalSize = (float)Math.Max(rn(8 - regionsInput / 20d), 3);
+            var text_townSize = 3f;
+
+            var icon_capitalSize = 1f;
+            var icon_townSize = 0.5f;
+
+            var paint = new SKPaint() { IsAntialias = true };
+
+            var desired = text_capitalSize;
+            var relative = Math.Max(rn((desired + desired / scale) / 2, 2), 1);
+            var hidden = relative * scale < 6 || relative * scale > 50;
+
+            if (!hidden)
+            {
+                var capitals = pack.burgs.filter(b => b != null && 0 != b.capital);
+                // burgLabels.select("#cities").attr("fill", "#3e3e4b")
+                //                             .attr("opacity", 1)
+                //                             .attr("font-family", "Almendra SC")
+                //                             .attr("data-font", "Almendra+SC")
+                //                             .attr("font-size", citiesSize)
+                //                             .attr("data-size", citiesSize);
+                paint.Style = SKPaintStyle.Stroke;
+                paint.Color = "3e3e4b".ToColor().SK();
+                paint.StrokeWidth = 0.24f;
+                paint.StrokeCap = SKStrokeCap.Butt;
+                capitals.forEach(b =>
+                {
+                    canvas.DrawCircle((float)b.x, (float)b.y, icon_capitalSize, paint);
+                });
+
+                paint.Style = SKPaintStyle.Fill;
+                paint.TextSize = text_capitalSize;
+                paint.TextAlign = SKTextAlign.Center;
+                paint.Typeface = faceFunc("AlmendraSC-Regular.ttf");
+                capitals.forEach(b =>
+                {
+                    canvas.DrawText(b.name, (float)b.x, (float)b.y + icon_capitalSize * -1.5f, paint);
+                });
+            }
+
+            desired = text_townSize;
+            relative = Math.Max(rn((desired + desired / scale) / 2, 2), 1);
+            hidden = relative * scale < 6 || relative * scale > 50;
+
+            if (!hidden)
+            {
+                var towns = pack.burgs.filter(b => b != null && 0 != b.i && 0 == b.capital);
+                // burgLabels.select("#towns").attr("fill", "#3e3e4b")
+                //                            .attr("opacity", 1)
+                //                            .attr("font-family", "Almendra SC")
+                //                            .attr("data-font", "Almendra+SC")
+                //                            .attr("font-size", 3)
+                //                            .attr("data-size", 4);
+                paint.Style = SKPaintStyle.Stroke;
+                paint.Color = "3e3e4b".ToColor().SK();
+                paint.StrokeWidth = 0.12f;
+                paint.StrokeCap = SKStrokeCap.Butt;
+                towns.forEach(b =>
+                {
+                    canvas.DrawCircle((float)b.x, (float)b.y, icon_townSize, paint);
+                });
+
+                paint.Style = SKPaintStyle.Fill;
+                paint.TextSize = text_townSize;
+                paint.TextAlign = SKTextAlign.Center;
+                paint.Typeface = faceFunc("AlmendraSC-Regular.ttf");
+                towns.forEach(b =>
+                {
+                    canvas.DrawText(b.name, (float)b.x, (float)b.y + icon_townSize * -1.5f, paint);
+                });
+            }
+        }
+
         public void drawStateLabels(SKCanvas canvas, Func<string, SKTypeface> faceFunc)
         {
+            var scale = canvas.TotalMatrix.ScaleX;
+            var text_stateSize = 22f;//默认字体大小
+
+            var desired = text_stateSize;
+            var relative = Math.Max(rn((desired + desired / scale) / 2, 2), 1);
+            var hidden = relative * scale < 6 || relative * scale > 50;
+            if (hidden)
+                return;
+
             var states = pack.states;
             var paths = labelSvgs;
 
@@ -1403,15 +1679,14 @@ namespace Janphe.Fantasy.Map
             paint.TextAlign = SKTextAlign.Center;
             paint.Color = SKColors.Black;
 
-            paint.TextSize = 22;//默认字体大小
+            paint.TextSize = text_stateSize;
             var letterLength = paint.MeasureText("Average") / 7;
 
             paths.ForEach(pp =>
             {
                 var s = states[pp.Key];
                 var points = pp.Value.ToArray();
-                var svgData = lineGen1(points);
-                var path = SKPath.ParseSvgPathData(svgData);
+                var path = lineGen1(points);
                 var pathMeasure = new SKPathMeasure(path, false, 1);
 
                 var pathLength = points.Length > 1 ? pathMeasure.Length / letterLength : 0;
@@ -1449,7 +1724,7 @@ namespace Janphe.Fantasy.Map
                     points[points.Length - 1] = new double[] { rn(l[0] + dx * mod), rn(l[1] + dy * mod) };
 
                     // textPath.attr("d", round(lineGen(points)));
-                    path = SKPath.ParseSvgPathData(lineGen1(points));
+                    path = lineGen1(points);
                 }
 
                 // example.attr("font-size", ratio+"%");// states font size 22px
@@ -1458,20 +1733,82 @@ namespace Janphe.Fantasy.Map
 
                 var rect = new SKRect();
                 var width = paint.MeasureText(s.name, ref rect);
-                //Debug.Log($"{pp.Key,-2} {s.name,-16} w:{width,-8} rect:{rect.ToString()}");
-
+                var height = rect.Height;
+                var topY = (height * 0.5f) * (1 - lines.Length * 0.5f);
                 lines.forEach((l, i) =>
                 {
-                    canvas.DrawTextOnPath(l, path, 0, rect.Height * i, paint);
+                    canvas.DrawTextOnPath(l, path, 0, topY + height * i, paint);
                 });
 
-                paint.Style = SKPaintStyle.Stroke;
-                canvas.DrawPath(path, paint);
-                points.forEach(p => canvas.DrawCircle(p.SK(), 2, paint));
+                //paint.Style = SKPaintStyle.Stroke;
+                //canvas.DrawPath(path, paint);
+                //points.forEach(p => canvas.DrawCircle(p.SK(), 2, paint));
             });
 
         }
 
-        public void drawBorders() { }
+        public void drawBorders(SKCanvas canvas)
+        {
+            var paintState = new SKPaint() { IsAntialias = true };
+            paintState.Color = "#56566d".ToColor().Opacity(0.8f).SK();
+            paintState.Style = SKPaintStyle.Stroke;
+            paintState.StrokeWidth = 1f;
+            paintState.StrokeCap = SKStrokeCap.Butt;
+            paintState.PathEffect = SKPathEffect.CreateDash(new float[] { 2, 2 }, 0);
+            canvas.DrawPath(stateBorders, paintState);
+
+            var paintProvince = new SKPaint() { IsAntialias = true };
+            paintProvince.Color = "#56566d".ToColor().Opacity(0.8f).SK();
+            paintProvince.Style = SKPaintStyle.Stroke;
+            paintProvince.StrokeWidth = 0.2f;
+            paintProvince.StrokeCap = SKStrokeCap.Butt;
+            paintProvince.PathEffect = SKPathEffect.CreateDash(new float[] { 1, 1 }, 0);
+            canvas.DrawPath(provinceBorders, paintProvince);
+        }
+
+        public void drawRoutes(SKCanvas canvas)
+        {
+            var cells = pack.cells;
+            var burgs = pack.burgs;
+
+            Action<int[], SKPaint> draw = (road, brush) =>
+             {
+                 var pp = road.map(c =>
+                 {
+                     var b = cells.burg[c];
+                     var x = 0 != b ? burgs[b].x : cells.p[c][0];
+                     var y = 0 != b ? burgs[b].y : cells.p[c][1];
+                     return new double[] { x, y };
+                 }).ToArray();
+                 canvas.DrawPath(lineGen1(pp), brush);
+             };
+
+            var paint = new SKPaint() { IsAntialias = true };
+            paint.Style = SKPaintStyle.Stroke;
+
+            //roads.attr("opacity", .9).attr("stroke", "#d06324").attr("stroke-width", .7)
+            //.attr("stroke-dasharray", "2").attr("stroke-linecap", "butt").attr("filter", null).attr("mask", null);
+            paint.Color = "#d06324".ToColor().Opacity(0.9f).SK();
+            paint.StrokeWidth = 0.7f;
+            paint.PathEffect = SKPathEffect.CreateDash(new float[] { 2, 2 }, 0);
+            paint.StrokeCap = SKStrokeCap.Butt;
+            capitalRoutes.forEach(road => draw(road, paint));
+
+            //trails.attr("opacity", .9).attr("stroke", "#d06324").attr("stroke-width", .25)
+            //.attr("stroke-dasharray", ".8 1.6").attr("stroke-linecap", "butt").attr("filter", null).attr("mask", null);
+            paint.Color = "#d06324".ToColor().Opacity(0.9f).SK();
+            paint.StrokeWidth = 0.25f;
+            paint.PathEffect = SKPathEffect.CreateDash(new float[] { .8f, 1.6f }, 0);
+            paint.StrokeCap = SKStrokeCap.Butt;
+            townRoutes.forEach(road => draw(road, paint));
+
+            //searoutes.attr("opacity", .8).attr("stroke", "#ffffff").attr("stroke-width", .45)
+            //.attr("stroke-dasharray", "1 2").attr("stroke-linecap", "round").attr("filter", null).attr("mask", null);
+            paint.Color = "#ffffff".ToColor().Opacity(0.8f).SK();
+            paint.StrokeWidth = 0.45f;
+            paint.PathEffect = SKPathEffect.CreateDash(new float[] { 1, 2 }, 0);
+            paint.StrokeCap = SKStrokeCap.Round;
+            oceanRoutes.forEach(road => draw(road, paint));
+        }
     }
 }

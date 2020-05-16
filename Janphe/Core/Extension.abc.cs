@@ -73,14 +73,6 @@ namespace Janphe
             return ret;
         }
 
-        // 哇，最快稳定排序是这个
-        // 最好直接用IOrderedEnumerable 不要转成Array或者List，会降低效率
-        private class TComparer<T> : IComparer<T> { public Comparison<T> func { get; set; } public int Compare(T x, T y) => func(x, y); }
-        public static IOrderedEnumerable<T> sort<T>(this IList<T> d, Comparison<T> comparison)
-        { return d.OrderBy(x => x, new TComparer<T>() { func = comparison }); }
-        public static IOrderedEnumerable<T> sort<T>(this IEnumerable<T> d, Comparison<T> comparison)
-        { return d.OrderBy(x => x, new TComparer<T>() { func = comparison }); }
-
         public static void forEach<T>(this IList<T> d, Action<T, int> func) { int i = 0; foreach (var a in d) func(a, i++); }
         public static void forEach<T>(this IList<T> d, Action<T> func) { foreach (var a in d) func(a); }
         public static void forEach<T>(this IEnumerable<T> d, Action<T, int> func) { int i = 0; foreach (var a in d) func(a, i++); }

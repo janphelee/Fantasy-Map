@@ -6,11 +6,12 @@ using System.Linq;
 
 namespace Janphe.Fantasy.Map
 {
+    using static Utils;
+
     partial class MapJobs
     {
         public SKBitmap Bitmap { get; private set; }
         private SKSurface _surface { get; set; }
-
 
         private float _sx = 1, _sy = 1;
         public void Scale(float sx, float sy) { _sx = sx; _sy = sy; }
@@ -52,7 +53,7 @@ namespace Janphe.Fantasy.Map
                 drawRivers(canvas);
 
             if (isLayersOn(Layers.opt_layers_temperature))
-                map1Temperatures.draw(canvas, linePath);
+                map1Temperatures.draw(canvas, linePoly);
 
             if (isLayersOn(Layers.opt_layers_precipitation))
                 map2Precipitation.draw(canvas);
@@ -61,15 +62,15 @@ namespace Janphe.Fantasy.Map
                 drawPopulation(canvas);
 
             if (isLayersOn(Layers.opt_layers_cultures))
-                map5Cultures.draw(canvas, linePath);
+                map5Cultures.draw(canvas, linePoly);
 
             if (isLayersOn(Layers.opt_layers_religions))
-                map6Religions.draw(canvas, linePath);
+                map6Religions.draw(canvas, linePoly);
 
             if (isLayersOn(Layers.opt_layers_states))
-            {
                 map6BurgsAndStates.drawStates(canvas);
-            }
+            if (isLayersOn(Layers.opt_layers_provinces))
+                map6BurgsAndStates.drawProvinces(canvas);
 
             if (isLayersOn(Layers.opt_layers_relief))
                 drawReliefIcons(canvas);
@@ -77,14 +78,15 @@ namespace Janphe.Fantasy.Map
             if (isLayersOn(Layers.opt_layers_cells))
                 drawCells(canvas);
 
+            if (isLayersOn(Layers.opt_layers_routes))
+                map6BurgsAndStates.drawRoutes(canvas);
 
             if (isLayersOn(Layers.opt_layers_borders))
-            {
+                map6BurgsAndStates.drawBorders(canvas);
 
-
-            }
             if (isLayersOn(Layers.opt_layers_labels))
             {
+                map6BurgsAndStates.drawBurgs(canvas, getFace);
                 map6BurgsAndStates.drawStateLabels(canvas, getFace);
             }
         }
@@ -136,18 +138,18 @@ namespace Janphe.Fantasy.Map
                     paint.Style = SKPaintStyle.Fill;
                     paint.Color = Color.Black.SK();
                     paint.MaskFilter = null;
-                    paths.ForEach(p => canvas.DrawPath(curvePath(p), paint));
+                    paths.ForEach(p => canvas.DrawPath(lineGenZ(p), paint));
 
                     //lakes
                     var lake = Lakes.find(l => l.name == features[f].group);
                     paint.Style = SKPaintStyle.Fill;
                     paint.Color = lake.fill.ToColor().Opacity(lake.opacity).SK();
-                    paths.ForEach(p => canvas.DrawPath(curvePath(p), paint));
+                    paths.ForEach(p => canvas.DrawPath(lineGenZ(p), paint));
 
                     paint.Style = SKPaintStyle.Stroke;
                     paint.Color = lake.stroke.ToColor().Opacity(lake.opacity).SK();
                     paint.StrokeWidth = lake.strokeWidth;
-                    paths.ForEach(p => canvas.DrawPath(curvePath(p), paint));
+                    paths.ForEach(p => canvas.DrawPath(lineGenZ(p), paint));
                 }
                 else
                 {
@@ -155,7 +157,7 @@ namespace Janphe.Fantasy.Map
                     paint.Style = SKPaintStyle.Fill;
                     paint.Color = Color.White.SK();
                     paint.MaskFilter = null;
-                    paths.ForEach(p => canvas.DrawPath(curvePath(p), paint));
+                    paths.ForEach(p => canvas.DrawPath(lineGenZ(p), paint));
 
                     //coastline
                     var g = features[f].group == "lake_island" ? "lake_island" : "sea_island";
@@ -165,7 +167,7 @@ namespace Janphe.Fantasy.Map
                     paint.StrokeWidth = island.strokeWidth;
                     //! TODO 滤镜怎么实现
                     paint.MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 0.2f);
-                    paths.ForEach(p => canvas.DrawPath(curvePath(p), paint));
+                    paths.ForEach(p => canvas.DrawPath(lineGenZ(p), paint));
                 }
             });
         }
@@ -190,7 +192,7 @@ namespace Janphe.Fantasy.Map
                 paths.forEach(pp =>
                 {
                     //pp.forEach(p => canvas.DrawPoints(SKPointMode.Polygon, p, paint));
-                    pp.forEach(p => canvas.DrawPath(curvePath(p), paint));
+                    pp.forEach(p => canvas.DrawPath(lineGenZ(p), paint));
                 });
             });
         }
@@ -236,7 +238,7 @@ namespace Janphe.Fantasy.Map
 
                 var pp = points.map(p => new SKPoint((float)p[0], (float)p[1])).ToArray();
                 //paths[h].AddPoly(pp);
-                paths[h].AddPath(curvePath(pp));
+                paths[h].AddPath(lineGenZ(pp));
                 ;
             });
 
@@ -321,8 +323,15 @@ namespace Janphe.Fantasy.Map
 
             chains.forEach((d, i) =>
             {
-                canvas.DrawPath(curvePath(d.path.map(p => new SKPoint((float)p[0], (float)p[1])).ToArray()), paint);
+                canvas.DrawPath(lineGenZ(d.path), paint);
             });
+
+            //paint.Style = SKPaintStyle.Stroke;
+            //paint.Color = SKColors.Red;
+            //chains.forEach((d, i) =>
+            //{
+            //    d.path.forEach(p => canvas.DrawCircle((float)p[0], (float)p[1], 1, paint));
+            //});
         }
 
         private void drawCells(SKCanvas canvas, float scale = 1)
@@ -419,43 +428,6 @@ namespace Janphe.Fantasy.Map
             return func;
         }
         private SKColor getColor(int value, Func<float, SKColor> scheme) => scheme(1 - (value < 20 ? value - 5 : value) / 100f);
-        private SKPoint scale(SKPoint a, float b) => new SKPoint(a.X * b, a.Y * b);
-        private SKPath curvePath(IList<SKPoint> points)
-        {
-            var path = new SKPath();
-
-            var n = points.Count;
-            var p0 = points[n - 1];
-            var p1 = points[0];
-            path.MoveTo(scale(p0 + p1, 0.5f));
-
-            for (var i = 0; i < n; ++i)
-            {
-                p0 = points[i];
-                p1 = i == n - 1 ? points[0] : points[i + 1];
-                var p2 = scale(p0 + p1, 0.5f);
-                //path.CubicTo(p0, p0, p2);
-                path.ConicTo(p0, p2, 0.5f);
-            }
-            path.Close();
-
-            return path;
-        }
-
-        private SKPath linePath(IList<SKPoint> points)
-        {
-            var path = new SKPath();
-            path.MoveTo(points[0]);
-
-            var n = points.Count;
-            for (var i = 1; i < n; ++i)
-            {
-                path.LineTo(points[i]);
-            }
-            path.Close();
-
-            return path;
-        }
 
     }
 }

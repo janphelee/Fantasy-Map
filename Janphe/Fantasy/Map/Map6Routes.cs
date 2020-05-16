@@ -100,6 +100,8 @@ namespace Janphe.Fantasy.Map
             var bodies = new HashSet<ushort>(allPorts.Select(b => b.port)); // features with ports
             var paths = new List<int[]>();
 
+            //var msg = new List<string>();
+
             foreach (var f in bodies)
             {
 
@@ -127,6 +129,8 @@ namespace Janphe.Fantasy.Map
                 }
 
                 var farthest = ports[D3.scan(ports, (a, b) => ((b.y - ports[0].y).pow(2) + (b.x - ports[0].x).pow(2)).CompareTo((a.y - ports[0].y).pow(2) + (a.x - ports[0].x).pow(2)))].cell;
+                //msg.push($"bodies {f} {first} {farthest}");
+
                 // directly connect first port with the farthest one
                 {
                     var ret = findOceanPath(farthest, first);
@@ -151,8 +155,12 @@ namespace Janphe.Fantasy.Map
                     //from[exit] = cells.haven[exit];
                     var path = restorePath(p.cell, exit, "ocean", from);
                     paths.AddRange(path);
+
+                    //msg.push($"findOceanPath {p.cell} { first} {exit}");
+                    //msg.push($"{path.map(pp => pp.join()).join(" ")}");
                 }
             }
+            //Debug.SaveArray("getSearoutes.txt", msg);
 
             return paths;
         }
@@ -204,7 +212,7 @@ namespace Janphe.Fantasy.Map
             return Tuple.Create(from, exit);
         }
         // find water paths
-        private Tuple<Dictionary<int, int>, int> findOceanPath(int start, int exit = -1, bool toRoute = false)
+        private Tuple<Dictionary<int, int>, int> findOceanPath(int start, int exit = -1, bool toRoute = false, List<string> mzg = null)
         {
             var pack = map.pack;
             var cells = pack.cells;
@@ -215,6 +223,7 @@ namespace Janphe.Fantasy.Map
             var cost = new Dictionary<int, double>();
             var from = new Dictionary<int, int>();
 
+            //var msg = new List<string>();
             while (queue.Count > 0)
             {
                 var next = queue.pop();
@@ -223,12 +232,13 @@ namespace Janphe.Fantasy.Map
                 if (toRoute && n != start && cells.road[n] > 0)
                 { return Tuple.Create(from, n); }
 
+                //msg.push($"queue.pop {n} {p} {queue.Count}");
                 foreach (var c in cells.r_neighbor_r[n])
                 {
                     if (cells.r_height[c] >= 20)
                         continue; // ignore land cells
                     var dist2 = (cells.r_points[c][1] - cells.r_points[n][1]).pow(2) + (cells.r_points[c][0] - cells.r_points[n][0]).pow(2);
-                    var totalCost = p + (cells.road[c] > 0 ? 1 + dist2 / 2.0 : dist2 + (cells.t[c] > 0 ? 1 : 100));
+                    var totalCost = p + (cells.road[c] > 0 ? 1 + dist2 / 2.0 : dist2 + (0 != cells.t[c] ? 1 : 100));
 
                     if ((from.ContainsKey(c) && 0 != from[c]) || (cost.ContainsKey(c) && totalCost >= cost[c]))
                         continue;
@@ -238,8 +248,11 @@ namespace Janphe.Fantasy.Map
 
                     cost[c] = totalCost;
                     queue.push(new Item { e = c, p = totalCost });
+                    //msg.push($"queue.push {c} {totalCost} {dist2}");
                 }
             }
+            //if (mzg != null)
+                //mzg.AddRange(msg);
 
             return Tuple.Create(from, exit);
         }
@@ -300,13 +313,6 @@ namespace Janphe.Fantasy.Map
             if (segment.Count > 1)
                 path.Add(segment.ToArray());
             return path;
-        }
-
-        public void draw(IList<int[]> main, IList<int[]> small, IList<int[]> ocean)
-        {
-            var pack = map.pack;
-            var cells = pack.cells;
-            var burgs = pack.burgs;
         }
 
     }

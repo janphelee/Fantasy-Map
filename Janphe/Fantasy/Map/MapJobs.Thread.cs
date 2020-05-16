@@ -32,10 +32,12 @@ namespace Janphe.Fantasy.Map
                 PowerInput = 2,
                 NeutralInput = 1,
                 RegionsNumber = 15,
-                ReligionsNumber = 7,
+                ReligionsNumber = 5,
 
                 ManorsInput = 1000,// burgs
                 StatesNeutral = 1,
+
+                ProvincesInput = 38,
             };
             Options.TemperatureEquator = new Options.Value() { min = -30, max = 30, value = 29 };
             Options.TemperatureScale = "°C";
@@ -149,18 +151,22 @@ namespace Janphe.Fantasy.Map
 
             var burgs = map6BurgsAndStates = new Map6BurgsAndStates(this);
             burgs.generate();
-            Debug.Log($"19 Map6BurgsAndStates.generate: {elapsed(watcher)}ms");
+            Debug.Log($"19 Map6BurgsAndStates.generate {Random.NextDouble()} {elapsed(watcher)}ms");
 
             map6Religions = new Map6Religions(this);
             map6Religions.generate();
+            Debug.Log($"20 Map6Religions.generate {Random.NextDouble()} {elapsed(watcher)}ms");
 
             burgs.defineStateForms();
             burgs.generateProvinces();
             burgs.defineBurgFeatures();
+            Debug.Log($"21 Map6BurgsAndStates.defineBurgFeatures {Random.NextDouble()} {elapsed(watcher)}ms");
 
-            burgs.generateStates();
+            burgs.generateProvincesPath();
+            burgs.generateStatesPath();
             burgs.generateStateLabels();
-            Debug.Log($"20 Map6Religions.generate: {elapsed(watcher)}ms");
+            burgs.generateBorders();
+            Debug.Log($"22 Map6BurgsAndStates.drawStateLabels {Random.NextDouble()} {elapsed(watcher)}ms");
         }
 
         protected override void process(Action<long> callback)

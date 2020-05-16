@@ -227,16 +227,17 @@ namespace Janphe.Fantasy.Map
                 var stroke = fill.darker(0.2f);
 
                 var points = new List<SKPoint>();
-                chain.forEach(pp => points.AddRange(pp.map(p => new SKPoint((float)p[0], (float)p[1]))));
+                chain.forEach(pp => points.AddRange(pp.map(p => p.SK())));
+                var path = curve(points);
 
                 paint.Color = fill.SK();
                 paint.Style = SKPaintStyle.Fill;
-                canvas.DrawPath(curve(points), paint);
+                canvas.DrawPath(path, paint);
 
                 paint.Color = stroke.SK();
                 paint.Style = SKPaintStyle.Stroke;
                 paint.StrokeWidth = strokeWidth;
-                canvas.DrawPath(curve(points), paint);
+                canvas.DrawPath(path, paint);
             });
 
             paint.Style = SKPaintStyle.Fill;

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SkiaSharp;
 
 namespace Janphe
 {
@@ -19,59 +21,88 @@ namespace Janphe
            注意：以上所有命令均允许小写字母。大写表示绝对定位，小写表示相对定位。
          */
 
-        public static string LineTo(double[][] pp)
+        public static SKPath linePoly(IList<SKPoint> pp) => linePoly(pp, true);
+
+        public static SKPath linePoly(IList<SKPoint> pp, bool close)
         {
-            var d = "M" + pp.map(p => p.join(",")).join("L");
+            var d = new SKPath();
+            d.AddPoly(pp.ToArray(), close);
+            return d;
+        }
+        public static SKPath linePoly(IEnumerable<SKPoint> pp, bool close)
+        {
+            var d = new SKPath();
+            d.AddPoly(pp.ToArray(), close);
             return d;
         }
 
-        public static string CurveTo(double[][] pp)
-        {
-            var d = "M" + pp.map(p => p.join(",")).join("L");
-            return d;
-        }
 
-        public static string lineGen1(double[][] pp)
+        public static SKPath lineGen1(double[][] pp)
         {
+            var d = new SKPath();
             if (pp.Length == 1)
-                return $"M{pp[0][0] - 50},{pp[0][1]}h{100}";
+            {
+                d.MoveTo((float)pp[0][0] - 50, (float)pp[0][1]);
+                d.RLineTo(100, 0);
+                return d;
+            }
             if (pp.Length == 2)
-                return $"M{pp[0].Str()}L{pp[1].Str()}";
+            {
+                d.MoveTo(pp[0].SK());
+                d.LineTo(pp[1].SK());
+                return d;
+            }
 
             var mp = pp.Select((p, i) => Mid(p, pp[(i + 1) % pp.Length])).ToArray();
 
-            var d = new StringBuilder();
-
-            d.Append($"M{pp.First().Str()}");
-            d.Append($"L{mp.First().Str()}");
+            d.MoveTo(pp.First().SK());
+            d.LineTo(mp.First().SK());
 
             for (var i = 1; i < pp.Length - 1; ++i)
-                d.Append($"Q{pp[i].Str()}, {mp[i].Str()}");
+                d.QuadTo(pp[i].SK(), mp[i].SK());
 
-            d.Append($"L{pp.Last().Str()}");
+            d.LineTo(pp.Last().SK());
 
-            return d.ToString();
+            return d;
         }
-
-        public static string lineGenZ(double[][] pp)
+        public static SKPath lineGenZ(double[][] pp)
         {
             var mp = pp.Select((p, i) => Mid(p, pp[(i + 1) % pp.Length])).ToArray();
 
-            var d = new StringBuilder();
+            var d = new SKPath();
 
-            d.Append($"M{mp.Last().Str()}");
+            d.MoveTo(mp.Last().SK());
 
             for (var i = 0; i < pp.Length; ++i)
-                d.Append($"Q{pp[i].Str()}, {mp[i].Str()}");
+                d.QuadTo(pp[i].SK(), mp[i].SK());
 
-            d.Append($"Z");
+            d.Close();
 
-            return d.ToString();
+            return d;
+        }
+
+        public static SKPath lineGenZ(IList<SKPoint> pp)
+        {
+            var mp = pp.Select((p, i) => Mid(p, pp[(i + 1) % pp.Count])).ToArray();
+
+            var d = new SKPath();
+
+            d.MoveTo(mp.Last());
+
+            for (var i = 0; i < pp.Count; ++i)
+                d.QuadTo(pp[i], mp[i]);
+
+            d.Close();
+
+            return d;
         }
 
         public static double[] Mul(double[] a, double s) => new double[] { a[0] * s, a[1] * s };
         public static double[] Add(double[] a, double[] b) => new double[] { a[0] + b[0], a[1] + b[1] };
-
         public static double[] Mid(double[] a, double[] b) => Mul(Add(a, b), 0.5);
+
+        public static SKPoint Mul(SKPoint a, float s) => new SKPoint(a.X * s, a.Y * s);
+        public static SKPoint Add(SKPoint a, SKPoint b) => new SKPoint(a.X + b.X, a.Y + b.Y);
+        public static SKPoint Mid(SKPoint a, SKPoint b) => Mul(Add(a, b), 0.5f);
     }
 }
