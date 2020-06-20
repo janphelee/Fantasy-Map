@@ -87,6 +87,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Janphe\App.cs" />
     <Compile Include="Janphe\Core\Color.bak.cs" />
     <Compile Include="Janphe\Core\Extension.sort.cs" />
     <Compile Include="Janphe\Core\PolyLabel.cs" />

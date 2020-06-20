@@ -33,9 +33,14 @@ namespace Janphe
             //! 必须设置 显示区域大小，字体贴图集，不然程序会挂掉
             var io = ImGui.GetIO();
             //io.Fonts.AddFontDefault();
-            //io.Fonts.AddFontFromFileTTF("E:\\room.godot\\Fantasy Map\\fonts\\文泉驿等宽微米黑.ttf", 16, null, io.Fonts.GetGlyphRangesChineseSimplifiedCommon());
-            io.Fonts.AddFontFromFileTTF("E:\\room.godot\\Fantasy Map\\fonts\\文泉驿等宽微米黑.ttf", 14, null, io.Fonts.GetGlyphRangesChineseFull());
-            io.Fonts.Build();
+            //io.Fonts.AddFontFromFileTTF(path, 16, null, io.Fonts.GetGlyphRangesChineseSimplifiedCommon());
+
+            var path = "fonts/文泉驿等宽微米黑.ttf";
+            App.LoadRes(path, ptr =>
+            {
+                io.Fonts.AddFontFromMemoryTTF(ptr, 14, 14, null, io.Fonts.GetGlyphRangesChineseFull());
+                io.Fonts.Build();
+            });
 
             initKeyMaps();//映射ImGui键名
         }

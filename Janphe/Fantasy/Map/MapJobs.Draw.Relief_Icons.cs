@@ -101,22 +101,15 @@ namespace Janphe.Fantasy.Map
             if (loaded.ContainsKey(id))
                 return loaded[id];
 
-            var fileName = $"{id.slice(1)}.svg";
-            var file = new Godot.File();
-            file.Open("res://images/reliefs/" + fileName, Godot.File.ModeFlags.Read);
-
-            var buffer = file.GetBuffer((int)file.GetLen());
-            var stream = new MemoryStream(buffer);
-
-            file.Close();
-
             var svg = new SKSvg();
-            var pic = svg.Load(stream);
-            Debug.Log($"{id} viewBox:{svg.ViewBox}");
 
-            stream.Dispose();
-
-            loaded[id] = svg;
+            var filePath = $"images/reliefs/{id.slice(1)}.svg";
+            App.LoadRes(filePath, d =>
+            {
+                svg.Load(d);
+                loaded[id] = svg;
+                Debug.Log($"{id} viewBox:{svg.ViewBox}");
+            });
 
             return svg;
         }
