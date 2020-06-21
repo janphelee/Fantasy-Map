@@ -2,8 +2,8 @@
 
 [ext_resource path="res://MapJobsScreen.cs" type="Script" id=1]
 [ext_resource path="res://images/pattern1.png" type="Texture" id=2]
+[ext_resource path="res://MapJobs_theme.tres" type="Theme" id=3]
 [ext_resource path="res://MoveAndZoom.cs" type="Script" id=5]
-[ext_resource path="res://Janphe/Gui/Gui.cs" type="Script" id=6]
 
 [node name="Spatial" type="Spatial"]
 
@@ -15,6 +15,7 @@ script = ExtResource( 5 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+mapJobsScreen = NodePath("MapJobs")
 
 [node name="TextureRect" type="TextureRect" parent="ViewportContainer"]
 self_modulate = Color( 0.627451, 0.65098, 1, 1 )
@@ -24,12 +25,8 @@ texture = ExtResource( 2 )
 stretch_mode = 2
 
 [node name="MapJobs" type="Panel" parent="ViewportContainer"]
+theme = ExtResource( 3 )
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-
-[node name="MapGui" type="Control" parent="ViewportContainer"]
-script = ExtResource( 6 )
-[connection signal="MoveTo" from="ViewportContainer" to="ViewportContainer/MapJobs" method="_on_ViewportContainer_MoveTo"]
-[connection signal="ZoomTo" from="ViewportContainer" to="ViewportContainer/MapJobs" method="_on_ViewportContainer_ZoomTo"]

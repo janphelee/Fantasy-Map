@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using SkiaSharp;
 using static Janphe.Utils;
 using SKSvg = SkiaSharp.Extended.Svg.SKSvg;

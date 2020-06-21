@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Godot;
 
 namespace Janphe
 {
@@ -38,5 +39,16 @@ namespace Janphe
 
             Marshal.FreeHGlobal(unmanagedPointer);
         }
+
+        public static string[] GetLocales()
+        {
+            var loaded = TranslationServer.GetLoadedLocales();
+            var locales = new string[loaded.Count];
+            for (var i = 0; i < locales.Length; ++i)
+                locales[i] = loaded[i] as string;
+            return locales;
+        }
+        public static string GetLocale() => TranslationServer.GetLocale();
+        public static void SetLocale(string locale) => TranslationServer.SetLocale(locale);
     }
 }
