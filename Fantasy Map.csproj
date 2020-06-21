@@ -91,9 +91,7 @@
     <Compile Include="Janphe\Core\Color.bak.cs" />
     <Compile Include="Janphe\Core\Extension.sort.cs" />
     <Compile Include="Janphe\Core\PolyLabel.cs" />
-    <Compile Include="Janphe\Core\Sort\TimSort.cs" />
-    <Compile Include="Janphe\Core\Sort\TimSortBase.cs" />
-    <Compile Include="Janphe\Core\Sort\TimSortExtender.cs" />
+    <Compile Include="Janphe\Core\Sort\AnyArrayTimSort.cs" />
     <Compile Include="Janphe\Core\TinyQueue.cs" />
     <Compile Include="Janphe\Core\Utils.Svg.cs" />
     <Compile Include="Janphe\D3\color\color.cs" />

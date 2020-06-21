@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Janphe.Core.Sort;
 
 namespace Janphe
 {
     public static partial class Extension
     {
-
         // 哇，最快稳定排序是这个
         // 最好直接用IOrderedEnumerable 不要转成Array或者List，会降低效率
         private class TComparer<T> : IComparer<T> { public Comparison<T> func { get; set; } public int Compare(T x, T y) => func(x, y); }
@@ -17,7 +17,7 @@ namespace Janphe
 
         public static T[] SortTim<T>(this T[] d, Comparison<T> comparison)
         {
-            d.TimSort(comparison);
+            AnyArrayTimSort<T>.Sort(d, comparison);
             return d;
         }
 
