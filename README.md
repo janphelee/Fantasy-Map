@@ -10,4 +10,6 @@
 
 # 编译运行
 
-* 首先要打开vs项目编译脚本生成dll，编辑器不能自动编译好像。
+* 首先用vs打开Fantasy Map.sln项目，右键解决方案还原nuget依赖包（即Json.Net、SkiaSharp等库）；
+  此时在vs点击编辑会提示缺少GodotSharp.dll，所以需要用godot打开项目准备引擎库。
+* 然后godot打开项目运行。
