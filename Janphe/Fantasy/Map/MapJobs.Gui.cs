@@ -82,30 +82,5 @@ namespace Janphe.Fantasy.Map
         }
         private SKTypeface getFace(string s) => faces.ContainsKey(s) ? faces[s] : null;
         
-        private void drawTabAbout(ref bool needUpdate, Func<string, string> _)
-        {
-            //ImGui.Text(_("opt_about_info"));
-            //ImGui.Separator();
-
-            //if (locale >= 0)
-            //{
-            //    ImGui.Spacing();
-            //    ImGui.Text(_("opt_about_switch_language"));
-
-            //    var data = Gui.GetLocales();
-            //    for (var i = 0; i < data.Length; ++i)
-            //    {
-            //        bool selected = i == locale;
-            //        if (ImGui.Selectable($"{_(data[i])}", ref selected))
-            //        {
-            //            if (selected && i != locale)
-            //            {
-            //                Gui.SetLocale(data[i]);
-            //                locale = i;
-            //            }
-            //        }
-            //    }
-            //}
-        }
     }
 }

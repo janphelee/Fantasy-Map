@@ -6,6 +6,7 @@ superpower,超级大国,superpower
 opt_new,新建,New Map
 opt_save,保存,Save
 opt_load,加载,Load
+opt_quit,退出,Quit
 opt_reset,重置,Reset Zoom
 opt_layers,图层,Layers
 opt_style,风格,Style

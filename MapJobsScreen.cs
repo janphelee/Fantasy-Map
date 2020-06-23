@@ -73,7 +73,7 @@ namespace FantasyMap
             //tabs.AnchorBottom = tabs.AnchorRight = 1f;
             tabs.SetPosition(new Vector2(8, 8));
             tabs.SetSize(new Vector2(330, 380));
-            tabs.TabAlign = TabContainer.TabAlignEnum.Left;
+            tabs.TabAlign = TabContainer.TabAlignEnum.Center;
 
             AddChild(tabs);
             _gui = tabs;
@@ -83,18 +83,14 @@ namespace FantasyMap
                 null,
                 null,
                 null,
-                null
+                drawTabAbout
             };
             for (var i = 0; i < (int)Tabs.count; ++i)
             {
                 var s = ((Tabs)i).ToString();
 
-                var hhh = new HBoxContainer();
-                hhh.Alignment = BoxContainer.AlignMode.Center;
-                tabs.AddChild(hhh);
-
                 var tab = new VBoxContainer();
-                hhh.AddChild(tab);
+                tabs.AddChild(tab);
                 tabs.SetTabTitle(i, s);
 
                 draws[i]?.Invoke(tab, i, s);
@@ -107,11 +103,13 @@ namespace FantasyMap
         {
             var grid = new GridContainer();
             grid.Columns = 3;
+            grid.AnchorRight = 1f;
 
             var layersOn = _mapJobs.LayersOn;
             for (var n = 0; n < layersOn.Length; ++n)
             {
                 var button = new Button();
+                button.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
                 button.ToggleMode = true;
                 button.Pressed = layersOn[n];
                 button.Text = ((MapJobs.Layers)n).ToString();
@@ -128,6 +126,48 @@ namespace FantasyMap
             layersOn[i] = pressed;
             generate();
         }
+
+        private void drawTabAbout(Control tab, int i, string s)
+        {
+            var label = new Label();
+            label.Text = "opt_about_info";
+
+            tab.AddChild(label);
+            tab.AddChild(new HSeparator());
+
+            var hbox = new HBoxContainer();
+            hbox.AnchorRight = 1;
+            hbox.Alignment = BoxContainer.AlignMode.Begin;
+            tab.AddChild(hbox);
+
+            label = new Label();
+            label.Text = "opt_about_switch_language";
+            hbox.AddChild(label);
+
+            var option = new OptionButton();
+            App.GetLocales().forEach(d => option.AddItem(d));
+            option.Selected = locale;
+            option.Connect("item_selected", this, nameof(on_item_selected));
+            hbox.AddChild(option);
+
+            var button = new Button();
+            button.Text = "opt_quit";
+            button.Connect("button_up", this, nameof(on_button_up));
+            tab.AddChild(new Label());
+            tab.AddChild(button);
+        }
+
+        private void on_item_selected(int i)
+        {
+            var data = App.GetLocales();
+            App.SetLocale(data[i]);
+        }
+
+        private void on_button_up()
+        {
+            GetTree().Quit();
+        }
+
 
         public void on_gui_input(InputEvent @event)
         {

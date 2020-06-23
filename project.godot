@@ -28,7 +28,7 @@ window/stretch/aspect="keep"
 
 fallback="zh_CN"
 locale_filter=[ 1, [ "en_US", "zh_CN" ] ]
-translations=PoolStringArray( "res://i18n/字符串翻译.en_US.translation", "res://i18n/字符串翻译.zh_CN.translation" )
+translations=PoolStringArray( "res://i18n/strings.en_US.translation", "res://i18n/strings.zh_CN.translation" )
 
 [mono]
 
