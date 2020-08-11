@@ -1,0 +1,40 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[  ]
+_global_script_class_icons={
+
+}
+
+[application]
+
+config/name="Fantasy Map"
+run/main_scene="res://Spatial.tscn"
+config/use_custom_user_dir=true
+config/icon="res://icon.png"
+
+[display]
+
+window/stretch/aspect="keep"
+
+[locale]
+
+fallback="zh_CN"
+locale_filter=[ 1, [ "en_US", "zh_CN" ] ]
+translations=PoolStringArray( "res://public/i18n/strings.en_US.translation", "res://public/i18n/strings.zh_CN.translation" )
+
+[mono]
+
+export/export_assemblies_inside_pck=false
+export/i18n_codesets=17
+
+[rendering]
+
+environment/default_environment="res://default_env.tres"
