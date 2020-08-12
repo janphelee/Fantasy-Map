@@ -9,12 +9,12 @@ namespace Janphe
     {
         public static byte[] LoadData(string path)
         {
-            var file = new Godot.File();
-            file.Open($"res://public/{path}", Godot.File.ModeFlags.Read);
+            var f = new Godot.File();
+            f.Open($"res://public/{path}", Godot.File.ModeFlags.Read);
 
-            var buffer = file.GetBuffer((int)file.GetLen());
-            file.Close();
-
+            var buffer = f.GetBuffer((int)f.GetLen());
+            f.Close();
+            f.Unreference();
             return buffer;
         }
 

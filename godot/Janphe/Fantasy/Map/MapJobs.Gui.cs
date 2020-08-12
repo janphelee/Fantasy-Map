@@ -70,11 +70,7 @@ namespace Janphe.Fantasy.Map
         {
             fonts.forEach(s =>
             {
-                var file = new Godot.File();
-                file.Open($"res://fonts/{s}", Godot.File.ModeFlags.Read);
-                var buf = file.GetBuffer((int)file.GetLen());
-                file.Dispose();
-
+                var buf = App.LoadData($"fonts/{s}");
                 var data = SKData.CreateCopy(buf);
                 faces[s] = SKTypeface.FromData(data);
                 data.Dispose();
