@@ -33,11 +33,11 @@ namespace Janphe
 
         public override void _Ready()
         {
+            var h5 = "ui";
+
             server = GetParent<EmbeddedWebServerComponent>();
-            server.AddResource("/.h5", this);
-
-
-            OS.ShellOpen($"http://{GetLocalIp()}:8079/.h5/index.html");
+            server.AddResource($"/{h5}", this);
+            OS.ShellOpen($"http://{GetLocalIp()}:8079/{h5}/index.html");
         }
 
         public void HandleRequest(Request request, Response response)
