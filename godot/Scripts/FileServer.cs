@@ -37,7 +37,7 @@ namespace Janphe
 
             server = GetParent<EmbeddedWebServerComponent>();
             server.AddResource($"/{h5}", this);
-            //OS.ShellOpen($"http://{GetLocalIp()}:8079/{h5}/index.html");
+            OS.ShellOpen($"http://{GetLocalIp()}:8079/{h5}/index.html");
         }
 
         public void HandleRequest(Request request, Response response)
