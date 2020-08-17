@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Scripts/MapJobsScreen.cs" type="Script" id=1]
 [ext_resource path="res://Scripts/EmbeddedWebServerComponent.cs" type="Script" id=2]
 [ext_resource path="res://MapJobs_theme.tres" type="Theme" id=3]
 [ext_resource path="res://Scripts/FileServer.cs" type="Script" id=4]
 [ext_resource path="res://Scripts/MoveAndZoom.cs" type="Script" id=5]
+[ext_resource path="res://Scripts/FileServerApi.cs" type="Script" id=6]
 
 [node name="Spatial" type="Spatial"]
 
@@ -30,9 +31,13 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+serverApi = NodePath("../../WebServer/FileServerApi")
 
 [node name="WebServer" type="Node" parent="."]
 script = ExtResource( 2 )
 
 [node name="FileServer" type="Node" parent="WebServer"]
 script = ExtResource( 4 )
+
+[node name="FileServerApi" type="Node" parent="WebServer"]
+script = ExtResource( 6 )

@@ -106,6 +106,7 @@
     <Compile Include="Janphe\WebServer\WebServer.cs" />
     <Compile Include="Scripts\BarcodeHelper.cs" />
     <Compile Include="Scripts\EmbeddedWebServerComponent.cs" />
+    <Compile Include="Scripts\FileServerApi.cs" />
     <Compile Include="Scripts\FileServer.cs" />
     <Compile Include="Scripts\MapJobsScreen.cs" />
     <Compile Include="Janphe\Core\Color.cs" />

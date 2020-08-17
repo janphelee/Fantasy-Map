@@ -2,6 +2,8 @@ using System;
 using Godot;
 using Janphe;
 using Janphe.Fantasy.Map;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace FantasyMap
 {
@@ -16,13 +18,33 @@ namespace FantasyMap
         private ImageTexture texture;
 
         private Vector2 areaSize;
-        private Control _gui;
-        private int locale = -1;
 
-        //[Export] private Theme mapTheme;
+        [Export] private NodePath serverApi { get; set; }
 
         public override void _Ready()
         {
+            var api = GetNode<FileServerApi>(serverApi);
+            api.AddPath("on_layers_toggled", req =>
+            {
+                Debug.Log($"on_layers_toggled method:{req.method} query:{req.query} body:{req.body}");
+                if (req.method.Equals("GET"))
+                {
+                    //var j = JObject.Parse(d);
+                    //var i = j["i"].Value<int>();
+                    //var pressed = j["pressed"].Value<bool>();
+                    //on_layers_toggled(i, pressed);
+                }
+                if (req.method.Equals("POST"))
+                {
+                    var j = JObject.Parse(req.body);
+                    var i = j["i"].Value<int>();
+                    var pressed = j["pressed"].Value<bool>();
+                    on_layers_toggled(i, pressed);
+                }
+
+                return JsonConvert.SerializeObject(_mapJobs.LayersOn);
+            });
+
             CallDeferred("start");
         }
 
@@ -42,18 +64,8 @@ namespace FantasyMap
                     if (image.GetFormat() == texture.GetFormat())
                         texture.SetData(image);
                 }
-                Update();
+                Update();// for call _Draw
             }
-        }
-
-        private enum Tabs
-        {
-            opt_layers,
-            opt_style,
-            opt_options,
-            opt_tools,
-            opt_about,
-            count
         }
 
         private void start()
@@ -65,102 +77,14 @@ namespace FantasyMap
             _mapJobs.Options.Height = (int)areaSize.y;
             Debug.Log($"GetParentAreaSize w:{areaSize.x} h:{areaSize.y}");
 
-            var data = App.GetLocales();
-            var lang = App.GetLocale();
-            locale = Array.FindIndex(data, d => d.StartsWith(lang));
-
-            var tabs = new TabContainer();
-            //tabs.AnchorBottom = tabs.AnchorRight = 1f;
-            tabs.SetPosition(new Vector2(8, 8));
-            tabs.SetSize(new Vector2(330, 380));
-            tabs.TabAlign = TabContainer.TabAlignEnum.Center;
-
-            AddChild(tabs);
-            _gui = tabs;
-
-            var draws = new Action<Control, int, string>[]{
-                drawTabLayers,
-                null,
-                null,
-                null,
-                drawTabAbout
-            };
-            for (var i = 0; i < (int)Tabs.count; ++i)
-            {
-                var s = ((Tabs)i).ToString();
-
-                var tab = new VBoxContainer();
-                tabs.AddChild(tab);
-                tabs.SetTabTitle(i, s);
-
-                draws[i]?.Invoke(tab, i, s);
-            }
-
             generate();
         }
 
-        private void drawTabLayers(Control tab, int i, string s)
-        {
-            var grid = new GridContainer();
-            grid.Columns = 3;
-            grid.AnchorRight = 1f;
-
-            var layersOn = _mapJobs.LayersOn;
-            for (var n = 0; n < layersOn.Length; ++n)
-            {
-                var button = new Button();
-                button.SizeFlagsHorizontal = (int)SizeFlags.ExpandFill;
-                button.ToggleMode = true;
-                button.Pressed = layersOn[n];
-                button.Text = ((MapJobs.Layers)n).ToString();
-                button.Connect("toggled", this, nameof(on_layers_toggled), new Godot.Collections.Array() { n });
-                grid.AddChild(button);
-            }
-
-            tab.AddChild(grid);
-        }
-
-        private void on_layers_toggled(bool pressed, int i)
+        private void on_layers_toggled(int i, bool pressed)
         {
             var layersOn = _mapJobs.LayersOn;
             layersOn[i] = pressed;
             generate();
-        }
-
-        private void drawTabAbout(Control tab, int i, string s)
-        {
-            var label = new Label();
-            label.Text = "opt_about_info";
-
-            tab.AddChild(label);
-            tab.AddChild(new HSeparator());
-
-            var hbox = new HBoxContainer();
-            hbox.AnchorRight = 1;
-            hbox.Alignment = BoxContainer.AlignMode.Begin;
-            tab.AddChild(hbox);
-
-            label = new Label();
-            label.Text = "opt_about_switch_language";
-            hbox.AddChild(label);
-
-            var option = new OptionButton();
-            App.GetLocales().forEach(d => option.AddItem(d));
-            option.Selected = locale;
-            option.Connect("item_selected", this, nameof(on_item_selected));
-            hbox.AddChild(option);
-
-            var button = new Button();
-            button.Text = "opt_quit";
-            button.Connect("button_up", this, nameof(on_button_up));
-            tab.AddChild(new Label());
-            tab.AddChild(button);
-        }
-
-        private void on_item_selected(int i)
-        {
-            var data = App.GetLocales();
-            App.SetLocale(data[i]);
         }
 
         private void on_button_up()
@@ -173,14 +97,14 @@ namespace FantasyMap
         {
             if (@event is InputEventMouseButton)
             {
-                var evt = (InputEventMouseButton)@event;
-                switch ((ButtonList)evt.ButtonIndex)
-                {
-                    case ButtonList.Right:
-                        if (_gui != null && evt.Pressed)
-                            _gui.Visible = !_gui.Visible;
-                        break;
-                }
+                //var evt = (InputEventMouseButton)@event;
+                //switch ((ButtonList)evt.ButtonIndex)
+                //{
+                //    case ButtonList.Right:
+                //        if (_gui != null && evt.Pressed)
+                //            _gui.Visible = !_gui.Visible;
+                //        break;
+                //}
             }
         }
 
