@@ -1,10 +1,12 @@
 // import Vue from 'vue'
 import App from './App'
+import ElementUI from 'element-ui'
 
 // import axios from 'axios'
 // import md5 from 'js-md5'
 
-// import 'element-ui/lib/theme-chalk/index.css';
+// Vue.use(ElementUI)
+import 'element-ui/lib/theme-chalk/index.css';
 
 
 // Vue.config.productionTip = false;
