@@ -1,8 +1,8 @@
 // import Vue from 'vue'
 import App from './App'
-import ElementUI from 'element-ui'
+// import ElementUI from 'element-ui'
 
-// import axios from 'axios'
+import axios from 'axios'
 // import md5 from 'js-md5'
 
 // Vue.use(ElementUI)
@@ -10,11 +10,10 @@ import 'element-ui/lib/theme-chalk/index.css';
 
 
 // Vue.config.productionTip = false;
-// Vue.prototype.$http = axios;
+Vue.prototype.$http = axios;
 // Vue.prototype.$md5 = md5;
 
-// axios.defaults.baseURL = "http://192.168.0.101:8000/api/toodo/";
-// axios.defaults.baseURL = "http://tddev.toodo.com.cn/tdmgrsrv/api/toodo/";
+axios.defaults.baseURL = `http://${window.location.host}:${window.location.port}/api`;
 // 配置拦截器携带token
 // axios.interceptors.request.use(config => {
 //   // 本地token
