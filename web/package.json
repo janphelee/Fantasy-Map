@@ -27,9 +27,5 @@
     "watch": "webpack --mode=development --watch",
     "build": "webpack --mode=production"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@code.aliyun.com:tdapp/tdapp-act-web.git"
-  },
   "author": "dphe"
 }
