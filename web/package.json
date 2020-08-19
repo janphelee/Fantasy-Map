@@ -4,6 +4,7 @@
   "description": "设置界面",
   "main": "index.js",
   "dependencies": {
+    "axios": "^0.19.2",
     "element-ui": "^2.13.1",
     "vue": "^2.6.11"
   },

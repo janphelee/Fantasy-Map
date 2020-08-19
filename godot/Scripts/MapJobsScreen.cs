@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 using Janphe;
 using Janphe.Fantasy.Map;
@@ -29,20 +30,23 @@ namespace FantasyMap
                 Debug.Log($"on_layers_toggled method:{req.method} query:{req.query} body:{req.body}");
                 if (req.method.Equals("GET"))
                 {
-                    //var j = JObject.Parse(d);
-                    //var i = j["i"].Value<int>();
-                    //var pressed = j["pressed"].Value<bool>();
-                    //on_layers_toggled(i, pressed);
+                    return JsonConvert.SerializeObject(get_layers());
                 }
                 if (req.method.Equals("POST"))
                 {
-                    var j = JObject.Parse(req.body);
-                    var i = j["i"].Value<int>();
-                    var pressed = j["pressed"].Value<bool>();
-                    on_layers_toggled(i, pressed);
+                    if (string.IsNullOrEmpty(req.body))
+                    {
+                        var layers = get_on_layers();
+                        return JsonConvert.SerializeObject(layers);
+                    }
+                    else
+                    {
+                        var layers = JsonConvert.DeserializeObject<int[]>(req.body);
+                        on_layers_toggled(layers);
+                        return JsonConvert.SerializeObject(layers);
+                    }
                 }
-
-                return JsonConvert.SerializeObject(_mapJobs.LayersOn);
+                return "hello world!";
             });
 
             CallDeferred("start");
@@ -80,10 +84,26 @@ namespace FantasyMap
             generate();
         }
 
-        private void on_layers_toggled(int i, bool pressed)
+        private string[] get_layers()
+        {
+            string _(int i)
+            {
+                return Tr(((MapJobs.Layers)i).ToString());
+            }
+            var layersOn = _mapJobs.LayersOn;
+            return layersOn.map((b, i) => _(i)).ToArray();
+        }
+        private int[] get_on_layers()
         {
             var layersOn = _mapJobs.LayersOn;
-            layersOn[i] = pressed;
+            return layersOn.map((b, i) => b ? i : -1).filter(i => i >= 0).ToArray();
+        }
+
+        private void on_layers_toggled(int[] layers)
+        {
+            var layersOn = _mapJobs.LayersOn;
+            layersOn.forEach((l, i) => layersOn[i] = false);
+            layers.forEach(i => layersOn[i] = true);
             generate();
         }
 
