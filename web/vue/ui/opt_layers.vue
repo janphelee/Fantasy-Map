@@ -5,7 +5,16 @@
 
     <el-checkbox-group v-model="checkboxGroup1" @change="onChange">
       <el-row v-for="(row,i) in layout" :key="`row-${i}`" gutter="8">
-        <el-col span="8" v-for="(col,j) in row" :key="`col-${j}`" class="el-col">
+        <el-col
+          :xs="8"
+          :sm="7"
+          :md="6"
+          :lg="4"
+          :xl="3"
+          v-for="(col,j) in row"
+          :key="`col-${j}`"
+          class="el-col"
+        >
           <el-checkbox-button :label="col">{{layers[col]}}</el-checkbox-button>
         </el-col>
       </el-row>
