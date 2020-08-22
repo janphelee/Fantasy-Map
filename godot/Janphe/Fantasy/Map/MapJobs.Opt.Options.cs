@@ -7,11 +7,31 @@ namespace Janphe.Fantasy.Map
 {
     partial class MapJobs
     {
+        public enum MapSetting
+        {
+            opt_map_size,
+            opt_map_seed,
+            opt_map_name,
+            opt_map_year,
+            opt_map_era,
+            opt_map_template,
+            opt_map_points_n,
+            opt_map_cultures_n,
+            opt_map_cultures_set,
+            opt_map_states_n,
+            opt_map_provinces_ratio,
+            opt_map_size_variety,
+            opt_map_growth_rate,
+            opt_map_towns_n,
+            opt_map_religions_n,
+            count
+        }
+
         /**
             canvasSize: { w: 500, h: 617 },
             mapSeed: [972402960, 1, 999999999, 1],
-            pointsNumber: [10, 10, 100, 1],
             mapName: "Persainy",
+            pointsNumber: [10, 10, 100, 1],
             yearAndEra: { y: 166, e: "Helbo Era" },
             mapTemplate: "Island",
             culturesNumber: [11, 1, 32, 1],
