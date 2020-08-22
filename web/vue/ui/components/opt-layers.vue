@@ -1,8 +1,7 @@
 <template>
   <div>
-    <span>青春是一个短暂的美梦, 当你醒来时, 它早已消失无踪</span>
-    <el-divider></el-divider>
-
+    <!-- <el-divider></el-divider> -->
+    <span>图层显示以及排序:</span>
     <el-checkbox-group v-model="checkboxGroup1" @change="onChange">
       <el-row v-for="(row,i) in layout" :key="`row-${i}`" gutter="8">
         <el-col
@@ -19,16 +18,13 @@
         </el-col>
       </el-row>
     </el-checkbox-group>
-
     <el-divider></el-divider>
-    <span>少量的邪恶足以抵消全部高贵的品质, 害得人声名狼藉</span>
   </div>
 </template>
 
 <script>
 import { CheckboxGroup, CheckboxButton, Row, Col } from "element-ui";
 import ElDivider from "element-ui/lib/divider";
-import api from "./api-layers";
 
 const components = {
   "el-checkbox-group": CheckboxGroup,
@@ -48,8 +44,7 @@ export default {
     };
   },
   created() {
-    api.axiso = this.$http;
-    api.get_layers((d) => {
+    this.$api.get_layers((d) => {
       this.layers = d;
 
       let layout = [];
@@ -61,13 +56,13 @@ export default {
       });
       this.layout = layout;
     });
-    api.get_on_layers((d) => {
+    this.$api.get_on_layers((d) => {
       this.checkboxGroup1 = d;
     });
   },
   methods: {
     onChange(d) {
-      api.on_layers_toggled(d, (d) => {});
+      this.$api.on_layers_toggled(d, (d) => {});
     },
   },
 };

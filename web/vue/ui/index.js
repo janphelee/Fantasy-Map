@@ -1,11 +1,7 @@
-// import Vue from 'vue'
 import App from './App'
-// import ElementUI from 'element-ui'
-
 import axios from 'axios'
-// import md5 from 'js-md5'
+import api from './api/index'
 
-// Vue.use(ElementUI)
 import 'element-ui/lib/theme-chalk/index.css';
 
 axios.defaults.baseURL = '/api';
@@ -17,11 +13,11 @@ axios.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
-Vue.config.productionTip = false;
-Vue.prototype.$http = axios;
-// Vue.prototype.$md5 = md5;
+api.axios = axios;
 
-/* eslint-disable no-new */
+Vue.config.productionTip = false;
+Vue.prototype.$api = api;
+
 new Vue({
   el: '#app',
   render: h => h(App)

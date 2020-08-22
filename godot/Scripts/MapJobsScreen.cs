@@ -30,23 +30,31 @@ namespace FantasyMap
                 Debug.Log($"on_layers_toggled method:{req.method} query:{req.query} body:{req.body}");
                 if (req.method.Equals("GET"))
                 {
-                    return JsonConvert.SerializeObject(get_layers());
+                    return JsonConvert.SerializeObject(_mapJobs.Get_Layers());
                 }
                 if (req.method.Equals("POST"))
                 {
                     if (string.IsNullOrEmpty(req.body))
                     {
-                        var layers = get_on_layers();
+                        var layers = _mapJobs.Get_On_Layers();
                         return JsonConvert.SerializeObject(layers);
                     }
                     else
                     {
                         var layers = JsonConvert.DeserializeObject<int[]>(req.body);
-                        on_layers_toggled(layers);
+                        _mapJobs.On_Layers_Toggled(layers);
+                        generate();
                         return JsonConvert.SerializeObject(layers);
                     }
                 }
                 return "hello world!";
+            });
+
+            api.AddPath("on_quit", req =>
+            {
+                GetTree().Quit();
+                Free();
+                return "";
             });
 
             CallDeferred("start");
@@ -72,6 +80,16 @@ namespace FantasyMap
             }
         }
 
+        public override void _Draw()
+        {
+            if (texture == null)
+                return;
+
+            var rr = GetParentAreaSize();
+            var ts = texture.GetSize();
+            DrawTexture(texture, (rr - ts) / 2);
+        }
+
         private void start()
         {
             areaSize = GetParentAreaSize();//不能在ready时候读取
@@ -83,35 +101,6 @@ namespace FantasyMap
 
             generate();
         }
-
-        private string[] get_layers()
-        {
-            string _(int i)
-            {
-                return Tr(((MapJobs.Layers)i).ToString());
-            }
-            var layersOn = _mapJobs.LayersOn;
-            return layersOn.map((b, i) => _(i)).ToArray();
-        }
-        private int[] get_on_layers()
-        {
-            var layersOn = _mapJobs.LayersOn;
-            return layersOn.map((b, i) => b ? i : -1).filter(i => i >= 0).ToArray();
-        }
-
-        private void on_layers_toggled(int[] layers)
-        {
-            var layersOn = _mapJobs.LayersOn;
-            layersOn.forEach((l, i) => layersOn[i] = false);
-            layers.forEach(i => layersOn[i] = true);
-            generate();
-        }
-
-        private void on_button_up()
-        {
-            GetTree().Quit();
-        }
-
 
         public void on_gui_input(InputEvent @event)
         {
@@ -128,7 +117,6 @@ namespace FantasyMap
             }
         }
 
-
         private void generate()
         {
             _mapJobs.processAsync(t =>
@@ -140,16 +128,6 @@ namespace FantasyMap
                 image.CreateFromData(bitmap.Width, bitmap.Height, false, Image.Format.Rgba8, bitmap.Bytes);
                 _needUpdate = true;
             });
-        }
-
-        public override void _Draw()
-        {
-            if (texture == null)
-                return;
-
-            var rr = GetParentAreaSize();
-            var ts = texture.GetSize();
-            DrawTexture(texture, (rr - ts) / 2);
         }
 
 

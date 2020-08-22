@@ -1,7 +1,7 @@
 export default {
-    axiso: null,
+    axios: null,
     get_layers(cb) {
-        this.axiso
+        this.axios
             .get("/on_layers_toggled")
             .then((response) => {
                 cb(response.data);
@@ -12,7 +12,7 @@ export default {
             });
     },
     get_on_layers(cb) {
-        this.axiso
+        this.axios
             .post("/on_layers_toggled", null)
             .then((response) => {
                 cb(response.data);
@@ -23,7 +23,7 @@ export default {
             });
     },
     on_layers_toggled(d, cb) {
-        this.axiso
+        this.axios
             .post("/on_layers_toggled", d)
             .then(function (response) {
                 cb(response.data);

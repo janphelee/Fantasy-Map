@@ -49,5 +49,6 @@ namespace Janphe
         }
         public static string GetLocale() => TranslationServer.GetLocale();
         public static void SetLocale(string locale) => TranslationServer.SetLocale(locale);
+        public static string Tr(string msg) => TranslationServer.Translate(msg);
     }
 }

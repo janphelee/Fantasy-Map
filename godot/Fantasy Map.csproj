@@ -92,7 +92,9 @@
     <Compile Include="Janphe\Core\TinyQueue.cs" />
     <Compile Include="Janphe\Core\Utils.Svg.cs" />
     <Compile Include="Janphe\D3\color\color.cs" />
-    <Compile Include="Janphe\Fantasy\Map\MapJobs.Gui.cs" />
+    <Compile Include="Janphe\Fantasy\Map\MapJobs.Fonts.cs" />
+    <Compile Include="Janphe\Fantasy\Map\MapJobs.Opt.Options.cs" />
+    <Compile Include="Janphe\Fantasy\Map\MapJobs.Opt.Layers.cs" />
     <Compile Include="Janphe\Fantasy\Map\MapJobs.Draw.Relief_Icons.cs" />
     <Compile Include="Janphe\Fantasy\Map\Style.cs" />
     <Compile Include="Janphe\WebServer\Headers.cs" />
