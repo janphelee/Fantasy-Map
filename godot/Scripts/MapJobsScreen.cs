@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Godot;
 using Janphe;
 using Janphe.Fantasy.Map;
@@ -29,20 +30,31 @@ namespace FantasyMap
                 Debug.Log($"on_layers_toggled method:{req.method} query:{req.query} body:{req.body}");
                 if (req.method.Equals("GET"))
                 {
-                    //var j = JObject.Parse(d);
-                    //var i = j["i"].Value<int>();
-                    //var pressed = j["pressed"].Value<bool>();
-                    //on_layers_toggled(i, pressed);
+                    return JsonConvert.SerializeObject(_mapJobs.Get_Layers());
                 }
                 if (req.method.Equals("POST"))
                 {
-                    var j = JObject.Parse(req.body);
-                    var i = j["i"].Value<int>();
-                    var pressed = j["pressed"].Value<bool>();
-                    on_layers_toggled(i, pressed);
+                    if (string.IsNullOrEmpty(req.body))
+                    {
+                        var layers = _mapJobs.Get_On_Layers();
+                        return JsonConvert.SerializeObject(layers);
+                    }
+                    else
+                    {
+                        var layers = JsonConvert.DeserializeObject<int[]>(req.body);
+                        _mapJobs.On_Layers_Toggled(layers);
+                        generate();
+                        return JsonConvert.SerializeObject(layers);
+                    }
                 }
+                return "hello world!";
+            });
 
-                return JsonConvert.SerializeObject(_mapJobs.LayersOn);
+            api.AddPath("on_quit", req =>
+            {
+                GetTree().Quit();
+                Free();
+                return "";
             });
 
             CallDeferred("start");
@@ -68,6 +80,16 @@ namespace FantasyMap
             }
         }
 
+        public override void _Draw()
+        {
+            if (texture == null)
+                return;
+
+            var rr = GetParentAreaSize();
+            var ts = texture.GetSize();
+            DrawTexture(texture, (rr - ts) / 2);
+        }
+
         private void start()
         {
             areaSize = GetParentAreaSize();//不能在ready时候读取
@@ -79,19 +101,6 @@ namespace FantasyMap
 
             generate();
         }
-
-        private void on_layers_toggled(int i, bool pressed)
-        {
-            var layersOn = _mapJobs.LayersOn;
-            layersOn[i] = pressed;
-            generate();
-        }
-
-        private void on_button_up()
-        {
-            GetTree().Quit();
-        }
-
 
         public void on_gui_input(InputEvent @event)
         {
@@ -108,7 +117,6 @@ namespace FantasyMap
             }
         }
 
-
         private void generate()
         {
             _mapJobs.processAsync(t =>
@@ -120,16 +128,6 @@ namespace FantasyMap
                 image.CreateFromData(bitmap.Width, bitmap.Height, false, Image.Format.Rgba8, bitmap.Bytes);
                 _needUpdate = true;
             });
-        }
-
-        public override void _Draw()
-        {
-            if (texture == null)
-                return;
-
-            var rr = GetParentAreaSize();
-            var ts = texture.GetSize();
-            DrawTexture(texture, (rr - ts) / 2);
         }
 
 

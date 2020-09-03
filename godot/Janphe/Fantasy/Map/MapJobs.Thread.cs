@@ -9,40 +9,6 @@ namespace Janphe.Fantasy.Map
 {
     partial class MapJobs
     {
-        public Options Options { get; set; }
-
-        private void initOptions()
-        {
-            Options = new Options()
-            {
-                MapSeed = 1,
-                Width = 1153,
-                Height = 717,
-                MapTemplate = "Archipelago",
-
-                PointsNumber = 1,
-                PrecipitationInput = 107,
-                WindsInput = new int[] { 270, 90, 225, 315, 135, 315 },
-                TemperaturePoleInput = -28,//[-30,30]
-                HeightExponentInput = 1.8f,//[1.5,2.1]
-
-                CulturesNumber = 12,
-                CulturesSet = "european",
-                CulturesSet_DataMax = 15,
-                PowerInput = 2,
-                NeutralInput = 1,
-                RegionsNumber = 15,
-                ReligionsNumber = 5,
-
-                ManorsInput = 1000,// burgs
-                StatesNeutral = 1,
-
-                ProvincesInput = 38,
-            };
-            Options.TemperatureEquator = new Options.Value() { min = -30, max = 30, value = 29 };
-            Options.TemperatureScale = "°C";
-        }
-
         private long _lastTicks;
         private double elapsed(Stopwatch watcher)
         {
