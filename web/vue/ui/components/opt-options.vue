@@ -1,12 +1,12 @@
 <template>
   <div>
     <span>地图设置:</span>
-    <el-row v-for="(v,k) in mapSettings" :key="k">
+    <el-row v-for="(v,k) in options" :key="k">
       <el-col>
         <el-button icon="el-icon-loading" circle class="btn-i"></el-button>
       </el-col>
-      <el-col>{{k}}</el-col>
       <el-col>{{v}}</el-col>
+      <el-col>{{setting[k]}}</el-col>
       <el-col>操作</el-col>
     </el-row>
   </div>
@@ -21,6 +21,9 @@ export default {
   components,
   data() {
     return {
+      options: {},
+      setting: {},
+
       mapSettings: {
         canvasSize: { w: 500, h: 617 },
         mapSeed: [972402960, 1, 999999999],
@@ -45,6 +48,14 @@ export default {
         zoomExtent: { min: 1, max: 20 },
       },
     };
+  },
+  created() {
+    this.$api.get_options((d) => {
+      this.options = d;
+    });
+    this.$api.get_on_options((d) => {
+      this.setting = d;
+    });
   },
 };
 </script>

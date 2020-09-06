@@ -48,20 +48,22 @@ opt_style_filter,滤镜,Filter
 opt_style_global,全局滤镜:,Toggle global filters:
 opt_options_new_map,新建地图参数:,New map settings:
 opt_options_canvas_size,画布大小,Canvas size
-opt_options_canvas_width,宽,width
-opt_options_canvas_height,高,height
-opt_options_map_seed,地图种子,Map seed
-opt_options_points,顶点数量,Points number
-opt_options_map_name,地图名称,Map name
-opt_options_map_temp,地图模板,Map template
-opt_options_cultures,文化数量,Cultures number
-opt_options_cultures_set,文化池,Cultures set
-opt_options_states,势力数量,States number
-opt_options_provinces_ratio,领地比例,Provinces ratio
-opt_options_size_variety,领地多样化,Size variety
-opt_options_growth_rate,增长率,Growth rate
-opt_options_towns,乡镇数量,Towns number
-opt_options_religions,信仰数量,Religions number
+opt_map_size.w,宽,width
+opt_map_size.h,高,height
+opt_map_year,年,Year
+opt_map_era,代,Era
+opt_map_seed,地图种子,Map seed
+opt_map_points_n,顶点数量,Points number
+opt_map_name,地图名称,Map name
+opt_map_template,地图模板,Map template
+opt_map_cultures_n,文化数量,Cultures number
+opt_map_cultures_set,文化池,Cultures set
+opt_map_states_n,势力数量,States number
+opt_map_provinces_ratio,领地比例,Provinces ratio
+opt_map_size_variety,领地多样化,Size variety
+opt_map_growth_rate,增长率,Growth rate
+opt_map_towns_n,乡镇数量,Towns number
+opt_map_religions_n,信仰数量,Religions number
 opt_tools_configure,点击修改图层:,Click to configure:
 opt_tools_overview,点击浏览图层:,Click to overview:
 opt_tools_regenerate,点击重新生成:,Click to regenerate:

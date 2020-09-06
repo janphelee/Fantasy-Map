@@ -54,7 +54,7 @@ namespace FantasyMap
             {
                 if (req.method.Equals("GET"))
                 {
-                    return JsonConvert.SerializeObject(_mapJobs.Get_Options());
+                    return _mapJobs.Get_Options();
                 }
                 if (req.method.Equals("POST"))
                 {
@@ -67,7 +67,10 @@ namespace FantasyMap
                     {
                         var d = JObject.Parse(req.body);
                         _mapJobs.On_Options_Toggled(d);
-                        //generate();
+
+                        if (d.ContainsKey("generate"))
+                            generate();
+
                         return req.body;
                     }
                 }
