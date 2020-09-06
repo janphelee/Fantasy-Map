@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using Godot;
 
@@ -37,7 +34,7 @@ namespace Janphe
 
             server = GetParent<EmbeddedWebServerComponent>();
             server.AddResource($"/{h5}", this);
-            OS.ShellOpen($"http://{GetLocalIp()}:8079/{h5}/index.html");
+            //OS.ShellOpen($"http://{GetLocalIp()}:8079/{h5}/index.html");
         }
 
         public void HandleRequest(Request request, Response response)
@@ -54,7 +51,6 @@ namespace Janphe
             {
                 response.statusCode = 404;
                 response.message = "Not Found";
-                f.Unreference();
                 return;
             }
 
@@ -73,7 +69,6 @@ namespace Janphe
                 response.SetBytes(f.GetBuffer(length));
             }
             f.Close();
-            f.Unreference();
         }
 
     }

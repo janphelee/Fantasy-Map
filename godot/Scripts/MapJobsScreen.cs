@@ -50,6 +50,30 @@ namespace FantasyMap
                 return "hello world!";
             });
 
+            api.AddPath("on_options_toggled", req =>
+            {
+                if (req.method.Equals("GET"))
+                {
+                    return JsonConvert.SerializeObject(_mapJobs.Get_Options());
+                }
+                if (req.method.Equals("POST"))
+                {
+                    if (string.IsNullOrEmpty(req.body))
+                    {
+                        var opts = _mapJobs.Get_On_Options();
+                        return JsonConvert.SerializeObject(opts);
+                    }
+                    else
+                    {
+                        var d = JObject.Parse(req.body);
+                        _mapJobs.On_Options_Toggled(d);
+                        //generate();
+                        return req.body;
+                    }
+                }
+                return "hello world!";
+            });
+
             api.AddPath("on_quit", req =>
             {
                 GetTree().Quit();

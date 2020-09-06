@@ -66,7 +66,7 @@ namespace Janphe.Fantasy.Map
         {
             string _(int i)
             {
-                return App.Tr(((MapJobs.Layers)i).ToString());
+                return App.Tr(((Layers)i).ToString());
             }
             return LayersOn.map((b, i) => _(i)).ToArray();
         }

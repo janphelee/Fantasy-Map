@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using Newtonsoft.Json.Linq;
 using SkiaSharp;
 
 namespace Janphe.Fantasy.Map
@@ -81,9 +83,9 @@ namespace Janphe.Fantasy.Map
         {
             string _(int i)
             {
-                return App.Tr(((MapJobs.Layers)i).ToString());
+                return App.Tr(((MapSetting)i).ToString());
             }
-            return LayersOn.map((b, i) => _(i)).ToArray();
+            return D3.range((int)MapSetting.count).map(i => _(i)).ToArray();
         }
 
         public int[] Get_On_Options()
@@ -91,7 +93,7 @@ namespace Janphe.Fantasy.Map
             return LayersOn.map((b, i) => b ? i : -1).filter(i => i >= 0).ToArray();
         }
 
-        public void On_Options_Toggled(int[] layers)
+        public void On_Options_Toggled(JObject biz)
         {
             var layersOn = LayersOn;
             layersOn.forEach((l, i) => layersOn[i] = false);

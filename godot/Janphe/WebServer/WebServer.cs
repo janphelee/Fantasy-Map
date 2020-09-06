@@ -1,14 +1,9 @@
-using System.Collections;
 using System.Net.Sockets;
-using System.Threading;
 using System.Collections.Generic;
-using System.IO;
 using System;
-using System.Text;
 
 namespace Janphe
 {
-
     public class WebServer : IDisposable
     {
         public readonly int port = 8079;
@@ -16,7 +11,7 @@ namespace Janphe
         public readonly bool processRequestsInMainThread = true;
         public bool logRequests = true;
 
-        public event System.Action<Request, Response> HandleRequest;
+        public event Action<Request, Response> HandleRequest;
 
         public void OnLog(Action<string> d) { debug = d; }
 
@@ -74,7 +69,10 @@ namespace Janphe
         Action<string> debug;
         void Log(string msg)
         {
-            if (debug != null) debug(msg);
+            if (debug != null)
+            {
+                debug(msg);
+            }
         }
 
         void AcceptConnections()
@@ -103,7 +101,8 @@ namespace Janphe
             while (true)
             {
                 var b = (byte)stream.ReadByte();
-                if (b < 0) break;
+                if (b < 0)
+                    break;
                 if (b == '\n')
                 {
                     break;
@@ -134,7 +133,8 @@ namespace Janphe
             while (true)
             {
                 var headerline = ReadLine(stream);
-                if (headerline.Length == 0) break;
+                if (headerline.Length == 0)
+                    break;
                 req.headers.AddHeaderLine(headerline);
             }
 

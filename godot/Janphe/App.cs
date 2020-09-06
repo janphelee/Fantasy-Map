@@ -14,7 +14,6 @@ namespace Janphe
 
             var buffer = f.GetBuffer((int)f.GetLen());
             f.Close();
-            f.Unreference();
             return buffer;
         }
 
