@@ -1,55 +1,73 @@
 <template>
   <div>
     <span>地图设置:</span>
-    <el-row v-for="(v,k) in options" :key="k">
-      <el-col>
-        <el-button icon="el-icon-loading" circle class="btn-i"></el-button>
-      </el-col>
-      <el-col>{{v}}</el-col>
-      <el-col>{{setting[k]}}</el-col>
-      <el-col>操作</el-col>
-    </el-row>
+
+    <opt-map-size :label="options['opt_map_size']"
+                  v-model="setting.opt_map_size">
+      <span> - - - </span>
+      <el-button type="success"
+                 @click="generate">生成地图</el-button>
+    </opt-map-size>
+
+    <opt-map-slider v-for="(v,k) in limits"
+                    v-model="setting[k]"
+                    :label="options[k]"
+                    :min="v[0]"
+                    :max="v[1]"
+                    :step="v[2]"
+                    :key="k" />
   </div>
 </template>
 
 <script>
 import ElRow from "element-ui/lib/row";
+import ElCol from "element-ui/lib/col";
 import ElButton from "element-ui/lib/button";
+import ElInput from "element-ui/lib/input";
+import ElSlider from "element-ui/lib/slider";
 
-const components = { ElRow, ElButton };
+import OptMapSize from './options/opt-map-size'
+import OptMapSlider from './options/opt-map-slider'
+
+const components = {
+  ElRow, ElCol, ElButton, ElInput, ElSlider,
+  OptMapSize, OptMapSlider
+};
 export default {
   components,
-  data() {
+  data () {
     return {
       options: {},
-      setting: {},
-
-      mapSettings: {
-        canvasSize: { w: 500, h: 617 },
-        mapSeed: [972402960, 1, 999999999],
-        pointsNumber: [10, 10, 100],
-        mapName: "Persainy",
-        yearAndEra: { y: 166, e: "Helbo Era" },
-        mapTemplate: "Island",
-        culturesNumber: [11, 1, 32],
-        culturesSet: "All-world",
-        statesNumber: [14, 0, 99],
-        provincesRatio: [20, 0, 100],
-        sizeVariety: [2.93, 0, 10],
-        growthRate: [1.4, 0.1, 2],
-        townsNumber: [1000, 0, 1000],
-        religionsNumber: [4, 0, 50],
+      setting: {
+        opt_map_size: {w: 1153, h: 717},
+        opt_map_seed: 1,
+      },
+      arrays: {
+        opt_map_template: [],
+        opt_map_cultures_set: [],
+      },
+      limits: {
+        // opt_map_size: [ 1, 65536, 1 ],
+        // opt_map_seed: [ 0, 4294967295, 1 ],
+        opt_map_points_n: [ 10, 100, 10 ],
+        opt_map_cultures_n: [ 1, 32, 1 ],
+        opt_map_states_n: [ 0, 99, 1 ],
+        opt_map_provinces_ratio: [ 0, 100, 1 ],
+        opt_map_size_variety: [ 0, 10, 0.01 ],
+        opt_map_growth_rate: [ 0.1, 2, 0.01 ],
+        opt_map_towns_n: [ 0, 1000, 1 ],
+        opt_map_religions_n: [ 0, 50, 1 ],
       },
       generatorSettings: {
         onloadBehavior: 0,
-        interfaceSize: [1, 0.6, 3],
-        tooltipSize: [14, 4, 32],
-        transparency: [5, 0, 100],
-        zoomExtent: { min: 1, max: 20 },
+        interfaceSize: [ 1, 0.6, 3 ],
+        tooltipSize: [ 14, 4, 32 ],
+        transparency: [ 5, 0, 100 ],
+        zoomExtent: {min: 1, max: 20},
       },
     };
   },
-  created() {
+  created () {
     this.$api.get_options((d) => {
       this.options = d;
     });
@@ -57,11 +75,14 @@ export default {
       this.setting = d;
     });
   },
+  methods: {
+    generate () {
+      this.$api.on_options_toggled(this.setting, d => {});
+    },
+  },
 };
 </script>
 
 <style scoped>
-.btn-i {
-  border: none;
-}
 </style>
+

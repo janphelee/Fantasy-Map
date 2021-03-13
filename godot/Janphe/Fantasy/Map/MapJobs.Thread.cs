@@ -140,8 +140,11 @@ namespace Janphe.Fantasy.Map
             var watcher = new Stopwatch();
             watcher.Start();
 
-            if (grid == null)
+            if (Options.NeedUpdate)
+            {
+                Options.NeedUpdate = false;
                 generate(watcher);
+            }
 
             draw();
 

@@ -68,9 +68,7 @@ namespace FantasyMap
                         var d = JObject.Parse(req.body);
                         _mapJobs.On_Options_Toggled(d);
 
-                        if (d.ContainsKey("generate"))
-                            generate();
-
+                        generate();
                         return req.body;
                     }
                 }

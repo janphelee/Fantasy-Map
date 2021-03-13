@@ -46,12 +46,9 @@ opt_style_halo_width,光晕范围,Halo width
 opt_style_halo_opacity,光晕透明度,Halo opacity
 opt_style_filter,滤镜,Filter
 opt_style_global,全局滤镜:,Toggle global filters:
-opt_options_new_map,新建地图参数:,New map settings:
-opt_options_canvas_size,画布大小,Canvas size
-opt_map_size.w,宽,width
-opt_map_size.h,高,height
-opt_map_year,年,Year
-opt_map_era,代,Era
+opt_map_size,地图尺寸,Canvas size
+opt_map_year,年份,Year
+opt_map_era,年号,Era
 opt_map_seed,地图种子,Map seed
 opt_map_points_n,顶点数量,Points number
 opt_map_name,地图名称,Map name

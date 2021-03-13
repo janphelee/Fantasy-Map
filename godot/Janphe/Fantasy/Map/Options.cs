@@ -34,9 +34,11 @@ namespace Janphe.Fantasy.Map
             public float value;
         }
 
-        public int MapSeed { get; set; }
+        public bool NeedUpdate { get; set; }
+
         public int Width { get; set; }
         public int Height { get; set; }
+        public int MapSeed { get; set; }
 
         public int Year { get; set; }
         public string Era { get; set; }
@@ -83,9 +85,11 @@ namespace Janphe.Fantasy.Map
 
         public Options()
         {
-            MapSeed = 1;
+            NeedUpdate = true;
+
             Width = 1153;
             Height = 717;
+            MapSeed = 1;
             MapTemplate = "Archipelago";
 
             Year = 166;
@@ -149,6 +153,7 @@ namespace Janphe.Fantasy.Map
                     _funcDict[kv.Key].Invoke(kv.Value);
                 }
             }
+            NeedUpdate = true;
         }
 
         private Dictionary<string, Func<JToken, JToken>> _funcDict { get; set; }
